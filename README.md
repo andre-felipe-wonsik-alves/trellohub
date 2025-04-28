@@ -14,6 +14,6 @@ Este projeto se inspira na aba **Projects** do GitHub, que exibe *issues* e tare
 
 ## Tecnologias Utilizadas
 
-- **Frontend**: TailwindCSS + ShadCN/UI  
+- **Frontend**: React + TailwindCSS + ShadCN/UI  
 - **Backend**: Electron.js (focado em aplicações desktop)  
 - **Banco de Dados**: SQLite
