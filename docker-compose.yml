@@ -1,0 +1,26 @@
+services:
+  web:
+    build:
+      context: ./trellohub
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80" 
+    depends_on:
+      - redis
+    networks:
+      - rede-andrezao
+
+  redis:
+    image: redis:7.2
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - rede-andrezao
+
+volumes:
+  redis-data:
+
+networks:
+  rede-andrezao:
