@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/rest';
-import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
-import type { github_user, github_api_error, github_auth_token } from '../../models/github'; //* o type é maneiro para interfaces
+// import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
+import type { github_user, github_auth_token } from '../../models/github'; //* o type é maneiro para interfaces
 
 const axios = require("axios/dist/node/axios.cjs");
 
@@ -17,7 +17,7 @@ export class Github_auth_service implements Github_auth_service_interface {
     private readonly client_secret: string;
     private readonly redirect_uri: string;
     private readonly scopes: string[];
-    private readonly oauth_app: Octokit;
+    // private readonly oauth_app: Octokit;
 
     constructor(
         client_id: string,
@@ -30,14 +30,14 @@ export class Github_auth_service implements Github_auth_service_interface {
         this.redirect_uri = redirect_uri;
         this.scopes = scopes;
 
-        this.oauth_app = new Octokit({
-            auth: createOAuthAppAuth({
-                clientType: 'oauth-app',
-                clientId: this.client_id,
-                clientSecret: this.client_secret,
-            }),
-            userAgent: 'TrelloHub',
-        });
+        // this.oauth_app = new Octokit({
+        //     auth: createOAuthAppAuth({
+        //         clientType: 'oauth-app',
+        //         clientId: this.client_id,
+        //         clientSecret: this.client_secret,
+        //     }),
+        //     userAgent: 'TrelloHub',
+        // });
     }
 
     get_oauth_url(): string {
@@ -118,6 +118,8 @@ export class Github_auth_service implements Github_auth_service_interface {
                     access_token: token,
                 }),
             });
+
+            console.log("Token revogado!\n" + response);
         } catch (error: any) {
             if (error.name === 'TypeError') {
                 throw new Error(`Failed to revoke token: ${error.message}`);

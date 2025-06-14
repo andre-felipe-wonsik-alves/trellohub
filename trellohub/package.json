@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "start": "tsc -b && electron dist/public/electron/main.js",
+    "start": "tsc -b && electron dist/electron/main.js",
     "watch": "tsc -b --watch",
     "lint": "eslint ."
   },
