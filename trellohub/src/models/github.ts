@@ -123,7 +123,6 @@ export interface repository_data {
     pull_requests: github_pull_request[];
     commits: github_commit[];
     labels: github_label[];
-    milestones: github_milestone[];
 }
 
 export interface github_api_error {
