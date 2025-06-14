@@ -23,5 +23,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "public/electron"]
+  "include": ["vite.config.ts", "public/electron", "src/electron/github", "src/electron/models", "src/electron/main.js", "src/electron/preload.js", "src/electron/renderer.js"]
 }
