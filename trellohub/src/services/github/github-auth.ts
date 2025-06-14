@@ -1,0 +1,185 @@
+import { Octokit } from '@octokit/rest';
+import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
+import type { github_user, github_api_error, github_auth_token } from '../../models/github'; //* o type é maneiro para interfaces
+
+const axios = require("axios/dist/node/axios.cjs");
+
+export interface github_auth_service_interface {
+    get_oauth_url(): string;
+    get_authenticated_user(token: string): Promise<github_user>;
+    exchange_code_for_token(code: string): Promise<github_auth_token>;
+    is_token_valid(token: string): Promise<boolean>;
+    revoke_token(token: string): Promise<void>;
+}
+
+export class github_auth_service implements github_auth_service_interface {
+    private readonly client_id: string;
+    private readonly client_secret: string;
+    private readonly redirect_uri: string;
+    private readonly scopes: string[];
+    private readonly oauth_app: Octokit;
+
+    constructor(
+        client_id: string,
+        client_secret: string,
+        redirect_uri: string,
+        scopes: string[] = ['repo', 'user:email']
+    ) {
+        this.client_id = client_id;
+        this.client_secret = client_secret;
+        this.redirect_uri = redirect_uri;
+        this.scopes = scopes;
+
+        this.oauth_app = new Octokit({
+            auth: createOAuthAppAuth({
+                clientType: 'oauth-app',
+                clientId: this.client_id,
+                clientSecret: this.client_secret,
+            }),
+            userAgent: 'TrelloHub',
+        });
+    }
+
+    get_oauth_url(): string {
+        const base_url = 'https://github.com/login/oauth/authorize';
+        const params = new URLSearchParams({
+            client_id: this.client_id,
+            redirect_uri: this.redirect_uri,
+            scope: this.scopes.join(' '),
+            state: this.generate_state(),
+        });
+
+        return `${base_url}?${params.toString()}`;
+    }
+
+    async exchange_code_for_token(code: string): Promise<github_auth_token> {
+        try {
+            const response = await axios.post('https://github.com/login/oauth/access_token', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    client_id: this.client_id,
+                    client_secret: this.client_secret,
+                    code: code,
+                    redirect_uri: this.redirect_uri,
+                }),
+            });
+
+            const data = response.data;
+
+            if (data.error) {
+                throw new Error(`OAuth error: ${data.error_description || data.error}`);
+            }
+
+            return {
+                access_token: data.access_token,
+                token_type: data.token_type || 'bearer',
+                scope: data.scope || this.scopes.join(' '),
+            };
+        } catch (error) {
+            throw new Error("Erro no get_oauth_url:\n " + error)
+        }
+    }
+
+    async get_authenticated_user(token: string): Promise<github_user> {
+        try {
+            const user_octokit = new Octokit({
+                auth: token,
+                userAgent: 'TrelloHub',
+            });
+
+            const { data } = await user_octokit.rest.users.getAuthenticated();
+
+            return data as github_user;
+        } catch (error: any) {
+            if (error.response) {
+                throw this.create_api_error(error.response.data, error.response.status);
+            }
+            throw new Error(`Failed to get authenticated user: ${error.message}`);
+        }
+    }
+
+    async is_token_valid(token: string): Promise<boolean> {
+        try {
+            await this.get_authenticated_user(token);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async revoke_token(token: string): Promise<void> {
+        try {
+            const response = await axios.delete(`https://api.github.com/applications/${this.client_id}/token`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Basic ${Buffer.from(`${this.client_id}:${this.client_secret}`).toString('base64')
+                        }`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    access_token: token,
+                }),
+            });
+        } catch (error: any) {
+            if (error.name === 'TypeError') {
+                throw new Error(`Failed to revoke token: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    private generate_state(): string {
+        return Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15);
+    }
+
+    private create_api_error(error_data: any, status: number): github_api_error {
+        return {
+            message: error_data.message || 'Unknown API error',
+            status: status,
+            documentation_url: error_data.documentation_url,
+        };
+    }
+
+    async get_token_info(token: string): Promise<any> {
+        try {
+            const user_octokit = new Octokit({
+                auth: token,
+                userAgent: 'TrelloHub',
+            });
+
+            const { headers } = await user_octokit.rest.users.getAuthenticated();
+
+            return {
+                rate_limit: {
+                    limit: parseInt(headers['x-ratelimit-limit'] || '0'),
+                    remaining: parseInt(headers['x-ratelimit-remaining'] || '0'),
+                    reset: parseInt(headers['x-ratelimit-reset'] || '0'),
+                },
+                scopes: String(headers['x-oauth-scopes'] || '').split(',').map(scope => scope.trim()).filter(Boolean),
+                accepted_scopes: String(headers['x-accepted-oauth-scopes'] || '').split(',').map(scope => scope.trim()).filter(Boolean),
+            };
+        } catch (error: any) {
+            if (error.response) {
+                throw this.create_api_error(error.response.data, error.response.status);
+            }
+            throw new Error(`Failed to get token info: ${error.message}`);
+        }
+    }
+
+    async has_required_scopes(token: string, required_scopes: string[]): Promise<boolean> {
+        try {
+            const token_info = await this.get_token_info(token);
+            const token_scopes = token_info.scopes;
+
+            return required_scopes.every(scope => token_scopes.includes(scope));
+        } catch (error) {
+            return false;
+        }
+    }
+}
