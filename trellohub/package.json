@@ -3,11 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "public/electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "start": "tsc -b && electron dist/electron/main.js",
+    "watch": "tsc -b --watch",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.7",
@@ -18,9 +20,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@octokit/auth-oauth-app": "^9.0.1",
+    "@octokit/rest": "^22.0.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "axios": "^1.9.0",
+    "electron": "^36.4.0",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
