@@ -4,7 +4,7 @@ import type { github_user, github_api_error, github_auth_token } from '../../mod
 
 const axios = require("axios/dist/node/axios.cjs");
 
-export interface github_auth_service_interface {
+export interface Github_auth_service_interface {
     get_oauth_url(): string;
     get_authenticated_user(token: string): Promise<github_user>;
     exchange_code_for_token(code: string): Promise<github_auth_token>;
@@ -12,7 +12,7 @@ export interface github_auth_service_interface {
     revoke_token(token: string): Promise<void>;
 }
 
-export class github_auth_service implements github_auth_service_interface {
+export class Github_auth_service implements Github_auth_service_interface {
     private readonly client_id: string;
     private readonly client_secret: string;
     private readonly redirect_uri: string;
@@ -70,10 +70,6 @@ export class github_auth_service implements github_auth_service_interface {
 
             const data = response.data;
 
-            if (data.error) {
-                throw new Error(`OAuth error: ${data.error_description || data.error}`);
-            }
-
             return {
                 access_token: data.access_token,
                 token_type: data.token_type || 'bearer',
@@ -95,9 +91,6 @@ export class github_auth_service implements github_auth_service_interface {
 
             return data as github_user;
         } catch (error: any) {
-            if (error.response) {
-                throw this.create_api_error(error.response.data, error.response.status);
-            }
             throw new Error(`Failed to get authenticated user: ${error.message}`);
         }
     }
@@ -138,14 +131,6 @@ export class github_auth_service implements github_auth_service_interface {
             Math.random().toString(36).substring(2, 15);
     }
 
-    private create_api_error(error_data: any, status: number): github_api_error {
-        return {
-            message: error_data.message || 'Unknown API error',
-            status: status,
-            documentation_url: error_data.documentation_url,
-        };
-    }
-
     async get_token_info(token: string): Promise<any> {
         try {
             const user_octokit = new Octokit({
@@ -165,9 +150,6 @@ export class github_auth_service implements github_auth_service_interface {
                 accepted_scopes: String(headers['x-accepted-oauth-scopes'] || '').split(',').map(scope => scope.trim()).filter(Boolean),
             };
         } catch (error: any) {
-            if (error.response) {
-                throw this.create_api_error(error.response.data, error.response.status);
-            }
             throw new Error(`Failed to get token info: ${error.message}`);
         }
     }
