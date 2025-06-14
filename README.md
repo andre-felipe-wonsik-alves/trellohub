@@ -17,3 +17,12 @@ Este projeto se inspira na aba **Projects** do GitHub, que exibe *issues* e tare
 - **Frontend**: React + TailwindCSS + ShadCN/UI  
 - **Backend**: Electron.js (focado em aplicações desktop)  
 - **Banco de Dados**: SQLite
+
+## Execução do projeto
+- **Importante**: Caso esteja utilizando o Windows, é necessário estar com o *Docker Desktop* aberto;
+- Após isso, só resta executar os seguintes comando:
+```bash
+>> npm install
+>> docker compose up
+```
+- Assim, o projeto estará disponível para acesso no browser em: *localhost:6969*
