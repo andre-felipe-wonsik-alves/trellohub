@@ -1,5 +1,11 @@
+/// <reference path="./types/electron-api.d.ts" />
+
 // GitHub Services Test Suite
 class GitHubTestSuite {
+  token: any;
+  user: any;
+  repositories: any;
+
   constructor() {
     this.token = null;
     this.user = null;
@@ -14,10 +20,10 @@ class GitHubTestSuite {
   }
 
   setupEventListeners() {
-    // Listener para códigos de autorização
-    window.addEventListener("github-auth-code", (event) => {
-      console.log("📨 Código de autorização recebido:", event.detail.code);
-      this.handleAuthorizationCode(event.detail.code);
+    window.addEventListener("github-auth-code", (event: Event) => {
+      const customEvent = event as CustomEvent<{ code: string }>;
+      console.log("📨 Código de autorização recebido:", customEvent.detail.code);
+      this.handleAuthorizationCode(customEvent.detail.code);
     });
   }
 
@@ -54,28 +60,32 @@ class GitHubTestSuite {
 
     document.body.appendChild(testContainer);
 
-    // Event listeners dos botões
-    document.getElementById("start-oauth").onclick = () => {
+    document.getElementById("start-oauth")?.addEventListener('click', () => {
       this.startOAuthFlow();
-    };
-    document.getElementById("test-token").onclick = () => {
+    });
+
+    document.getElementById("test-token")?.addEventListener('click', () => {
       this.testToken();
-    };
-    document.getElementById("get-repos").onclick = () => {
+    });
+
+    document.getElementById("get-repos")?.addEventListener('click', () => {
       this.getUserRepositories();
-    };
-    document.getElementById("get-repo-data").onclick = () => {
+    });
+
+    document.getElementById("get-repo-data")?.addEventListener('click', () => {
       this.getRepositoryData();
-    };
-    document.getElementById("revoke-token").onclick = () => {
+    });
+
+    document.getElementById("revoke-token")?.addEventListener('click', () => {
       this.revokeToken();
-    };
-    document.getElementById("run-full-test").onclick = () => {
+    });
+
+    document.getElementById("run-full-test")?.addEventListener('click', () => {
       this.runFullTest();
-    };
+    });
   }
 
-  updateStatus(message) {
+  updateStatus(message: string) {
     const statusDiv = document.getElementById("test-status");
     if (statusDiv) {
       statusDiv.innerHTML = message;
@@ -84,17 +94,28 @@ class GitHubTestSuite {
   }
 
   enableButtons() {
-    document.getElementById("test-token").disabled = false;
-    document.getElementById("get-repos").disabled = false;
-    document.getElementById("get-repo-data").disabled = false;
-    document.getElementById("revoke-token").disabled = false;
+    const testTokenButton = document.getElementById("test-token") as HTMLButtonElement;
+    const getReposButton = document.getElementById("get-repos") as HTMLButtonElement;
+    const getRepoData = document.getElementById("get-repo-data") as HTMLButtonElement;
+    const revokeToken = document.getElementById("revoke-token") as HTMLButtonElement;
+
+
+    if (testTokenButton) testTokenButton.disabled = false;
+    if (getReposButton) getReposButton.disabled = false;
+    if (getRepoData) getRepoData.disabled = false;
+    if (revokeToken) revokeToken.disabled = false;
   }
 
   disableButtons() {
-    document.getElementById("test-token").disabled = true;
-    document.getElementById("get-repos").disabled = true;
-    document.getElementById("get-repo-data").disabled = true;
-    document.getElementById("revoke-token").disabled = true;
+    const testTokenButton = document.getElementById("test-token") as HTMLButtonElement;
+    const getReposButton = document.getElementById("get-repos") as HTMLButtonElement;
+    const getRepoData = document.getElementById("get-repo-data") as HTMLButtonElement;
+    const revokeToken = document.getElementById("revoke-token") as HTMLButtonElement;
+
+    if (testTokenButton) testTokenButton.disabled = true;
+    if (getReposButton) getReposButton.disabled = true;
+    if (getRepoData) getRepoData.disabled = true;
+    if (revokeToken) revokeToken.disabled = true;
   }
 
   // Teste 1: Iniciar fluxo OAuth
@@ -113,12 +134,17 @@ class GitHubTestSuite {
       console.log("⏳ Aguardando código de autorização...");
     } catch (error) {
       console.error("❌ Erro no OAuth:", error);
-      this.updateStatus(`Erro OAuth: ${error.message}`);
+
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido';
+
+      this.updateStatus(`Erro OAuth: ${errorMessage}`);
     }
   }
 
   // Teste 2: Trocar código por token
-  async handleAuthorizationCode(code) {
+  async handleAuthorizationCode(code: string) {
     try {
       console.log("🔄 Trocando código por token...");
       this.updateStatus("Trocando código por token...");
@@ -134,7 +160,10 @@ class GitHubTestSuite {
       await this.getAuthenticatedUser();
     } catch (error) {
       console.error("❌ Erro ao trocar código:", error);
-      this.updateStatus(`Erro ao obter token: ${error.message}`);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido';
+      this.updateStatus(`Erro ao obter token: ${errorMessage}`);
     }
   }
 
@@ -156,7 +185,10 @@ class GitHubTestSuite {
       this.updateStatus(`Usuário: ${user.login} (${user.name})`);
     } catch (error) {
       console.error("❌ Erro ao buscar usuário:", error);
-      this.updateStatus(`Erro ao buscar usuário: ${error.message}`);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido';
+      this.updateStatus(`Erro ao buscar usuário: ${errorMessage}`);
     }
   }
 
@@ -177,7 +209,10 @@ class GitHubTestSuite {
       this.updateStatus(`Token ${isValid ? "válido" : "inválido"}`);
     } catch (error) {
       console.error("❌ Erro ao validar token:", error);
-      this.updateStatus(`Erro ao validar token: ${error.message}`);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido';
+      this.updateStatus(`Erro ao validar token: ${errorMessage}`);
     }
   }
 
@@ -209,7 +244,10 @@ class GitHubTestSuite {
       }
     } catch (error) {
       console.error("❌ Erro ao buscar repositórios:", error);
-      this.updateStatus(`Erro ao buscar repositórios: ${error.message}`);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido';
+      this.updateStatus(`Erro ao buscar repositórios: ${errorMessage}`);
     }
   }
 
@@ -238,7 +276,10 @@ class GitHubTestSuite {
       this.updateStatus(`Dados de ${repo.name} carregados`);
     } catch (error) {
       console.error("❌ Erro ao buscar dados do repositório:", error);
-      this.updateStatus(`Erro ao buscar dados: ${error.message}`);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido';
+      this.updateStatus(`Erro ao buscar dados: ${errorMessage}`);
     }
   }
 
@@ -263,7 +304,10 @@ class GitHubTestSuite {
       this.updateStatus("Token revogado");
     } catch (error) {
       console.error("❌ Erro ao revogar token:", error);
-      this.updateStatus(`Erro ao revogar: ${error.message}`);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido';
+      this.updateStatus(`Erro ao revogar: ${errorMessage}`);
     }
   }
 
