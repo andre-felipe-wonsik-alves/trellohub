@@ -1,10 +1,10 @@
 import { Octokit } from '@octokit/rest';
 // import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
-import type { github_user, github_auth_token } from '../models/github'; //* o type é maneiro para interfaces
+import type { github_user, github_auth_token } from '../types/github'; //* o type é maneiro para interfaces
 
 const axios = require("axios/dist/node/axios.cjs");
 
-export interface Github_auth_service_interface {
+export interface github_auth_service_interface {
     get_oauth_url(): string;
     get_authenticated_user(token: string): Promise<github_user>;
     exchange_code_for_token(code: string): Promise<github_auth_token>;
@@ -12,7 +12,7 @@ export interface Github_auth_service_interface {
     revoke_token(token: string): Promise<void>;
 }
 
-export class Github_auth_service implements Github_auth_service_interface {
+export class github_auth_service implements github_auth_service_interface {
     private readonly client_id: string;
     private readonly client_secret: string;
     private readonly redirect_uri: string;
@@ -20,9 +20,9 @@ export class Github_auth_service implements Github_auth_service_interface {
     // private readonly oauth_app: Octokit;
 
     constructor(
-        client_id: string,
-        client_secret: string,
-        redirect_uri: string,
+        client_id: string = 'aaa',
+        client_secret: string = 'aaa',
+        redirect_uri: string = 'aaa',
         scopes: string[] = ['repo', 'user:email']
     ) {
         this.client_id = client_id;

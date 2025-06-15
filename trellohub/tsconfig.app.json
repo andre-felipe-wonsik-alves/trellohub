@@ -1,6 +1,7 @@
+//* Config APENAS do React
 {
   "compilerOptions": {
-    "composite": true,  
+    "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -24,5 +25,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/electron/github", "src/electron/models"]
+  "include": ["src/react/**/*"],
+  "exclude": ["src/electron"]
 }

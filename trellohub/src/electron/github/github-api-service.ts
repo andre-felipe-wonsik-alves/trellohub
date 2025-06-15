@@ -6,7 +6,7 @@ import type {
     github_label,
     repository_data,
     github_api_error
-} from '../models/github';
+} from '../types/github';
 
 export interface github_api_service_interface {
     get_user_repositories(token: string): Promise<github_repository[]>;
