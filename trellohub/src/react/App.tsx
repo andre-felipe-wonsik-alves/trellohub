@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { Plus, X, Edit2, Trash2, GripVertical } from 'lucide-react';
+import React, { useState, useCallback, useRef } from "react";
+import { Plus, X, Edit2, Trash2, GripVertical } from "lucide-react";
 
 // Princípio SOLID: Single Responsibility - Cada classe/função tem uma única responsabilidade
 
@@ -22,7 +22,7 @@ interface BoardState {
 
 interface DragState {
   draggedItem: {
-    type: 'card' | 'column';
+    type: "card" | "column";
     id: string;
     sourceColumnId?: string;
     sourceIndex?: number;
@@ -33,7 +33,8 @@ interface DragState {
 }
 
 // Utility functions (Single Responsibility)
-const generateId = (): string => Date.now().toString(36) + Math.random().toString(36).substr(2);
+const generateId = (): string =>
+  Date.now().toString(36) + Math.random().toString(36).substr(2);
 
 // Card Management Service (Single Responsibility + Open/Closed Principle)
 class CardService {
@@ -41,7 +42,7 @@ class CardService {
     return {
       id: generateId(),
       title,
-      description
+      description,
     };
   }
 
@@ -56,7 +57,7 @@ class ColumnService {
     return {
       id: generateId(),
       title,
-      cards: []
+      cards: [],
     };
   }
 
@@ -69,14 +70,14 @@ class ColumnService {
     }
     return {
       ...column,
-      cards: newCards
+      cards: newCards,
     };
   }
 
   static removeCardFromColumn(column: Column, cardId: string): Column {
     return {
       ...column,
-      cards: column.cards.filter(card => card.id !== cardId)
+      cards: column.cards.filter((card) => card.id !== cardId),
     };
   }
 
@@ -84,7 +85,11 @@ class ColumnService {
     return { ...column, title };
   }
 
-  static moveCardWithinColumn(column: Column, fromIndex: number, toIndex: number): Column {
+  static moveCardWithinColumn(
+    column: Column,
+    fromIndex: number,
+    toIndex: number
+  ): Column {
     const newCards = [...column.cards];
     const [movedCard] = newCards.splice(fromIndex, 1);
     newCards.splice(toIndex, 0, movedCard);
@@ -94,7 +99,11 @@ class ColumnService {
 
 // Board Management Service (Single Responsibility)
 class BoardService {
-  static addColumn(board: BoardState, column: Column, index?: number): BoardState {
+  static addColumn(
+    board: BoardState,
+    column: Column,
+    index?: number
+  ): BoardState {
     const newColumns = [...board.columns];
     if (index !== undefined && index >= 0) {
       newColumns.splice(index, 0, column);
@@ -106,43 +115,61 @@ class BoardService {
 
   static removeColumn(board: BoardState, columnId: string): BoardState {
     return {
-      columns: board.columns.filter(col => col.id !== columnId)
+      columns: board.columns.filter((col) => col.id !== columnId),
     };
   }
 
-  static updateColumn(board: BoardState, columnId: string, updatedColumn: Column): BoardState {
+  static updateColumn(
+    board: BoardState,
+    columnId: string,
+    updatedColumn: Column
+  ): BoardState {
     return {
-      columns: board.columns.map(col => 
+      columns: board.columns.map((col) =>
         col.id === columnId ? updatedColumn : col
-      )
+      ),
     };
   }
 
-  static moveColumn(board: BoardState, fromIndex: number, toIndex: number): BoardState {
+  static moveColumn(
+    board: BoardState,
+    fromIndex: number,
+    toIndex: number
+  ): BoardState {
     const newColumns = [...board.columns];
     const [movedColumn] = newColumns.splice(fromIndex, 1);
     newColumns.splice(toIndex, 0, movedColumn);
     return { columns: newColumns };
   }
 
-  static moveCard(board: BoardState, cardId: string, fromColumnId: string, toColumnId: string, toIndex: number): BoardState {
+  static moveCard(
+    board: BoardState,
+    cardId: string,
+    fromColumnId: string,
+    toColumnId: string,
+    toIndex: number
+  ): BoardState {
     const newColumns = [...board.columns];
-    
+
     // Find source and destination columns
-    const sourceColIndex = newColumns.findIndex(col => col.id === fromColumnId);
-    const destColIndex = newColumns.findIndex(col => col.id === toColumnId);
-    
+    const sourceColIndex = newColumns.findIndex(
+      (col) => col.id === fromColumnId
+    );
+    const destColIndex = newColumns.findIndex((col) => col.id === toColumnId);
+
     if (sourceColIndex === -1 || destColIndex === -1) return board;
-    
+
     const sourceColumn = { ...newColumns[sourceColIndex] };
     const destColumn = { ...newColumns[destColIndex] };
-    
+
     // Find and remove card from source
-    const cardIndex = sourceColumn.cards.findIndex(card => card.id === cardId);
+    const cardIndex = sourceColumn.cards.findIndex(
+      (card) => card.id === cardId
+    );
     if (cardIndex === -1) return board;
-    
+
     const [card] = sourceColumn.cards.splice(cardIndex, 1);
-    
+
     // Add card to destination
     if (fromColumnId === toColumnId) {
       // Moving within same column
@@ -152,22 +179,109 @@ class BoardService {
       // Moving to different column
       destColumn.cards.splice(toIndex, 0, card);
     }
-    
+
     newColumns[sourceColIndex] = sourceColumn;
     newColumns[destColIndex] = destColumn;
-    
+
     return { columns: newColumns };
   }
 
   static removeCard(board: BoardState, cardId: string): BoardState {
     return {
-      columns: board.columns.map(column => ({
+      columns: board.columns.map((column) => ({
         ...column,
-        cards: column.cards.filter(card => card.id !== cardId)
-      }))
+        cards: column.cards.filter((card) => card.id !== cardId),
+      })),
     };
   }
 }
+
+// Modal de confirmação
+const ConfirmationModal: React.FC<{
+  isOpen: boolean;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ isOpen, message, onConfirm, onCancel }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 max-w-90vw shadow-2xl">
+        <div className="mb-4">
+          <p className="text-gray-700">{message}</p>
+        </div>
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Modal de input
+const InputModal: React.FC<{
+  isOpen: boolean;
+  title: string;
+  defaultValue: string;
+  onConfirm: (value: string) => void;
+  onCancel: () => void;
+}> = ({ isOpen, title, defaultValue, onConfirm, onCancel }) => {
+  const [value, setValue] = useState(defaultValue);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 max-w-90vw shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <button
+            onClick={onCancel}
+            className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="mb-4">
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoFocus
+          />
+        </div>
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => onConfirm(value)}
+            disabled={!value.trim()}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors"
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Card Component (Single Responsibility)
 const CardComponent: React.FC<{
@@ -179,21 +293,32 @@ const CardComponent: React.FC<{
   onDragStart: (cardId: string, columnId: string, index: number) => void;
   onDragEnd: () => void;
   isDragging: boolean;
-}> = ({ card, columnId, index, onEdit, onDelete, onDragStart, onDragEnd, isDragging }) => {
-
+}> = ({
+  card,
+  columnId,
+  index,
+  onEdit,
+  onDelete,
+  onDragStart,
+  onDragEnd,
+  isDragging,
+}) => {
   return (
     <div
       className={`bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-2 cursor-move hover:shadow-md transition-all duration-200 ${
-        isDragging ? 'opacity-30 transform rotate-3 scale-95' : 'hover:scale-[1.02]'
+        isDragging
+          ? "opacity-30 transform rotate-3 scale-95"
+          : "hover:scale-[1.02]"
       }`}
       draggable
       onDragStart={(e) => {
         onDragStart(card.id, columnId, index);
         // Create a custom drag image
-        const dragImage = document.createElement('div');
-        dragImage.className = 'bg-white rounded-lg shadow-lg border-2 border-blue-400 p-3';
-        dragImage.style.position = 'absolute';
-        dragImage.style.top = '-1000px';
+        const dragImage = document.createElement("div");
+        dragImage.className =
+          "bg-white rounded-lg shadow-lg border-2 border-blue-400 p-3";
+        dragImage.style.position = "absolute";
+        dragImage.style.top = "-1000px";
         dragImage.innerHTML = `<div class="font-medium text-gray-900">${card.title}</div>`;
         document.body.appendChild(dragImage);
         e.dataTransfer.setDragImage(dragImage, 50, 25);
@@ -203,7 +328,9 @@ const CardComponent: React.FC<{
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h4 className="font-medium text-gray-900 text-sm mb-1">{card.title}</h4>
+          <h4 className="font-medium text-gray-900 text-sm mb-1">
+            {card.title}
+          </h4>
           {card.description && (
             <p className="text-xs text-gray-600">{card.description}</p>
           )}
@@ -243,7 +370,9 @@ const DropZone: React.FC<{
   return (
     <div
       className={`transition-all duration-200 ${
-        isActive ? 'h-8 bg-blue-100 border-2 border-dashed border-blue-400 rounded-lg mb-2' : 'h-1'
+        isActive
+          ? "h-8 bg-blue-100 border-2 border-dashed border-blue-400 rounded-lg mb-2"
+          : "h-1"
       }`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
@@ -263,20 +392,24 @@ const ColumnComponent: React.FC<{
   onDeleteCard: (columnId: string, cardId: string) => void;
   onEditColumn: (columnId: string) => void;
   onDeleteColumn: (columnId: string) => void;
-  onCardDragStart: (cardId: string, columnId: string, cardIndex: number) => void;
+  onCardDragStart: (
+    cardId: string,
+    columnId: string,
+    cardIndex: number
+  ) => void;
   onCardDragEnd: () => void;
   onColumnDragStart: (columnId: string, index: number) => void;
   onColumnDragEnd: () => void;
   onDropZoneDrop: (columnId: string, index: number) => void;
   dragState: DragState;
   isDragging: boolean;
-}> = ({ 
-  column, 
+}> = ({
+  column,
   index,
-  onAddCard, 
-  onEditCard, 
-  onDeleteCard, 
-  onEditColumn, 
+  onAddCard,
+  onEditCard,
+  onDeleteCard,
+  onEditColumn,
   onDeleteColumn,
   onCardDragStart,
   onCardDragEnd,
@@ -284,7 +417,7 @@ const ColumnComponent: React.FC<{
   onColumnDragEnd,
   onDropZoneDrop,
   dragState,
-  isDragging
+  isDragging,
 }) => {
   const columnRef = useRef<HTMLDivElement>(null);
 
@@ -294,39 +427,45 @@ const ColumnComponent: React.FC<{
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (dragState.draggedItem?.type === 'card') {
+    if (dragState.draggedItem?.type === "card") {
       onDropZoneDrop(column.id, column.cards.length);
     }
   };
 
   const isDropZoneActive = (cardIndex: number) => {
-    return dragState.draggedItem?.type === 'card' && 
-           dragState.dragOverColumn === column.id && 
-           dragState.dragOverIndex === cardIndex;
+    return (
+      dragState.draggedItem?.type === "card" &&
+      dragState.dragOverColumn === column.id &&
+      dragState.dragOverIndex === cardIndex
+    );
   };
 
   return (
-    <div 
+    <div
       ref={columnRef}
       className={`bg-gray-100 rounded-lg p-4 w-80 flex-shrink-0 transition-all duration-200 ${
-        isDragging ? 'opacity-50 transform rotate-1 scale-95' : ''
+        isDragging ? "opacity-50 transform rotate-1 scale-95" : ""
       } ${
-        dragState.dragOverColumn === column.id && dragState.draggedItem?.type === 'card' 
-          ? 'ring-2 ring-blue-400 bg-blue-50' 
-          : ''
+        dragState.dragOverColumn === column.id &&
+        dragState.draggedItem?.type === "card"
+          ? "ring-2 ring-blue-400 bg-blue-50"
+          : ""
       }`}
     >
-      <div 
+      <div
         className="flex items-center justify-between mb-4 cursor-move group"
         draggable
         onDragStart={(e) => {
           onColumnDragStart(column.id, index);
-          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.effectAllowed = "move";
         }}
         onDragEnd={onColumnDragEnd}
       >
         <h3 className="font-semibold text-gray-800 flex items-center">
-          <GripVertical size={16} className="mr-2 text-gray-400 group-hover:text-gray-600" />
+          <GripVertical
+            size={16}
+            className="mr-2 text-gray-400 group-hover:text-gray-600"
+          />
           {column.title}
           <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
             {column.cards.length}
@@ -365,7 +504,7 @@ const ColumnComponent: React.FC<{
           isActive={isDropZoneActive(0)}
           onDrop={onDropZoneDrop}
         />
-        
+
         {column.cards.map((card, cardIndex) => (
           <div key={card.id} className="group">
             <CardComponent
@@ -408,7 +547,9 @@ const ColumnDropZone: React.FC<{
   return (
     <div
       className={`transition-all duration-200 ${
-        isActive ? 'w-4 bg-blue-100 border-2 border-dashed border-blue-400 rounded-lg mx-2' : 'w-1'
+        isActive
+          ? "w-4 bg-blue-100 border-2 border-dashed border-blue-400 rounded-lg mx-2"
+          : "w-1"
       }`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
@@ -427,11 +568,11 @@ const TrashZone: React.FC<{
   return (
     <div
       className={`fixed bottom-6 right-6 transition-all duration-300 z-50 ${
-        isActive 
-          ? 'bg-red-500 text-white scale-110 shadow-2xl animate-pulse' 
-          : 'bg-red-400 text-red-100 scale-100 shadow-lg'
+        isActive
+          ? "bg-red-500 text-white scale-110 shadow-2xl animate-pulse"
+          : "bg-red-400 text-red-100 scale-100 shadow-lg"
       } rounded-full p-4 border-4 border-dashed ${
-        isActive ? 'border-red-200' : 'border-red-300'
+        isActive ? "border-red-200" : "border-red-300"
       }`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
@@ -441,7 +582,7 @@ const TrashZone: React.FC<{
     >
       <Trash2 size={32} />
       <div className="text-xs font-bold mt-1 text-center">
-        {isActive ? 'SOLTE AQUI' : 'LIXEIRA'}
+        {isActive ? "SOLTE AQUI" : "LIXEIRA"}
       </div>
     </div>
   );
@@ -479,153 +620,237 @@ const TrelloHub: React.FC = () => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
-        id: 'col1',
-        title: 'A Fazer',
+        id: "col1",
+        title: "A Fazer",
         cards: [
-          { id: 'card1', title: 'Estudar React', description: 'Aprender hooks e context' },
-          { id: 'card2', title: 'Fazer compras', description: 'Ir ao supermercado' }
-        ]
+          {
+            id: "card1",
+            title: "Sla",
+            description: "Nao sei",
+          },
+          {
+            id: "card2",
+            title: "Bora Bill",
+            description: "Lá ele",
+          },
+        ],
       },
       {
-        id: 'col2',
-        title: 'Em Progresso',
+        id: "col2",
+        title: "Em Progresso",
         cards: [
-          { id: 'card3', title: 'Desenvolver projeto', description: 'TrelloHub' }
-        ]
+          {
+            id: "card3",
+            title: "Desenvolver projeto",
+            description: "TrelloHub",
+          },
+        ],
       },
       {
-        id: 'col3',
-        title: 'Concluído',
-        cards: []
-      }
-    ]
+        id: "col3",
+        title: "Concluído",
+        cards: [],
+      },
+    ],
   });
 
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,
     dragOverColumn: null,
     dragOverIndex: null,
-    dragOutside: false
+    dragOutside: false,
   });
 
   const [modalState, setModalState] = useState<{
-    type: 'card' | 'column' | null;
+    type: "card" | "column" | null;
     isOpen: boolean;
     data?: any;
   }>({ type: null, isOpen: false });
 
-  const [formData, setFormData] = useState({ title: '', description: '' });
+  const [formData, setFormData] = useState({ title: "", description: "" });
 
   const boardRef = useRef<HTMLDivElement>(null);
 
   // Enhanced drag tracking
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!dragState.draggedItem) return;
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!dragState.draggedItem) return;
 
-    const boardElement = boardRef.current;
-    if (!boardElement) return;
+      const boardElement = boardRef.current;
+      if (!boardElement) return;
 
-    const boardRect = boardElement.getBoundingClientRect();
-    const isOutside = (
-      e.clientX < boardRect.left ||
-      e.clientX > boardRect.right ||
-      e.clientY < boardRect.top ||
-      e.clientY > boardRect.bottom
-    );
+      const boardRect = boardElement.getBoundingClientRect();
+      const isOutside =
+        e.clientX < boardRect.left ||
+        e.clientX > boardRect.right ||
+        e.clientY < boardRect.top ||
+        e.clientY > boardRect.bottom;
 
-    setDragState(prev => ({
-      ...prev,
-      dragOutside: isOutside
-    }));
-
-    // Find column and position for cards
-    if (dragState.draggedItem.type === 'card') {
-      const columns = document.querySelectorAll('[data-column-id]');
-      let overColumn: string | null = null;
-      let overIndex: number | null = null;
-
-      columns.forEach((col) => {
-        const rect = col.getBoundingClientRect();
-        if (e.clientX >= rect.left && e.clientX <= rect.right && 
-            e.clientY >= rect.top && e.clientY <= rect.bottom) {
-          overColumn = col.getAttribute('data-column-id');
-          
-          // Find insertion index based on Y position
-          const cards = col.querySelectorAll('[data-card-index]');
-          overIndex = 0;
-          
-          cards.forEach((card, index) => {
-            const cardRect = card.getBoundingClientRect();
-            if (e.clientY > cardRect.top + cardRect.height / 2) {
-              overIndex = index + 1;
-            }
-          });
-        }
-      });
-
-      setDragState(prev => ({
+      setDragState((prev) => ({
         ...prev,
-        dragOverColumn: overColumn,
-        dragOverIndex: overIndex
+        dragOutside: isOutside,
       }));
-    }
-  }, [dragState.draggedItem]);
+
+      // Find column and position for cards
+      if (dragState.draggedItem.type === "card") {
+        const columns = document.querySelectorAll("[data-column-id]");
+        let overColumn: string | null = null;
+        let overIndex: number | null = null;
+
+        columns.forEach((col) => {
+          const rect = col.getBoundingClientRect();
+          if (
+            e.clientX >= rect.left &&
+            e.clientX <= rect.right &&
+            e.clientY >= rect.top &&
+            e.clientY <= rect.bottom
+          ) {
+            overColumn = col.getAttribute("data-column-id");
+
+            // Find insertion index based on Y position
+            const cards = col.querySelectorAll("[data-card-index]");
+            overIndex = 0;
+
+            cards.forEach((card, index) => {
+              const cardRect = card.getBoundingClientRect();
+              if (e.clientY > cardRect.top + cardRect.height / 2) {
+                overIndex = index + 1;
+              }
+            });
+          }
+        });
+
+        setDragState((prev) => ({
+          ...prev,
+          dragOverColumn: overColumn,
+          dragOverIndex: overIndex,
+        }));
+      }
+    },
+    [dragState.draggedItem]
+  );
 
   // Add global mouse move listener
   React.useEffect(() => {
     if (dragState.draggedItem) {
-      document.addEventListener('mousemove', handleMouseMove);
-      return () => document.removeEventListener('mousemove', handleMouseMove);
+      document.addEventListener("mousemove", handleMouseMove);
+      return () => document.removeEventListener("mousemove", handleMouseMove);
     }
   }, [dragState.draggedItem, handleMouseMove]);
 
   // Card drag handlers
-  const handleCardDragStart = useCallback((cardId: string, columnId: string, index: number) => {
-    setDragState({
-      draggedItem: { type: 'card', id: cardId, sourceColumnId: columnId, sourceIndex: index },
-      dragOverColumn: null,
-      dragOverIndex: null,
-      dragOutside: false
-    });
-  }, []);
+  const handleCardDragStart = useCallback(
+    (cardId: string, columnId: string, index: number) => {
+      setDragState({
+        draggedItem: {
+          type: "card",
+          id: cardId,
+          sourceColumnId: columnId,
+          sourceIndex: index,
+        },
+        dragOverColumn: null,
+        dragOverIndex: null,
+        dragOutside: false,
+      });
+    },
+    []
+  );
 
   const handleCardDragEnd = useCallback(() => {
     setDragState({
       draggedItem: null,
       dragOverColumn: null,
       dragOverIndex: null,
-      dragOutside: false
+      dragOutside: false,
     });
   }, []);
 
   // Column drag handlers
-  const handleColumnDragStart = useCallback((columnId: string, index: number) => {
-    setDragState({
-      draggedItem: { type: 'column', id: columnId, sourceIndex: index },
-      dragOverColumn: null,
-      dragOverIndex: null,
-      dragOutside: false
-    });
-  }, []);
+  const handleColumnDragStart = useCallback(
+    (columnId: string, index: number) => {
+      setDragState({
+        draggedItem: { type: "column", id: columnId, sourceIndex: index },
+        dragOverColumn: null,
+        dragOverIndex: null,
+        dragOutside: false,
+      });
+    },
+    []
+  );
 
   const handleColumnDragEnd = useCallback(() => {
     setDragState({
       draggedItem: null,
       dragOverColumn: null,
       dragOverIndex: null,
-      dragOutside: false
+      dragOutside: false,
     });
   }, []);
 
   // Drop zone handlers
-  const handleDropZoneDrop = useCallback((columnId: string, index: number) => {
-    if (!dragState.draggedItem || dragState.draggedItem.type !== 'card') return;
+  const handleDropZoneDrop = useCallback(
+    (columnId: string, index: number) => {
+      if (!dragState.draggedItem || dragState.draggedItem.type !== "card")
+        return;
 
-    const { id: cardId, sourceColumnId } = dragState.draggedItem;
-    
-    if (sourceColumnId) {
-      setBoard(prevBoard => 
-        BoardService.moveCard(prevBoard, cardId, sourceColumnId, columnId, index)
+      const { id: cardId, sourceColumnId } = dragState.draggedItem;
+
+      if (sourceColumnId) {
+        setBoard((prevBoard) =>
+          BoardService.moveCard(
+            prevBoard,
+            cardId,
+            sourceColumnId,
+            columnId,
+            index
+          )
+        );
+      }
+
+      setDragState({
+        draggedItem: null,
+        dragOverColumn: null,
+        dragOverIndex: null,
+        dragOutside: false,
+      });
+    },
+    [dragState.draggedItem]
+  );
+
+  // Column reorder drop
+  const handleColumnDrop = useCallback(
+    (toIndex: number) => {
+      if (!dragState.draggedItem || dragState.draggedItem.type !== "column")
+        return;
+
+      const fromIndex = dragState.draggedItem.sourceIndex;
+      if (fromIndex !== undefined && fromIndex !== toIndex) {
+        setBoard((prevBoard) =>
+          BoardService.moveColumn(prevBoard, fromIndex, toIndex)
+        );
+      }
+
+      setDragState({
+        draggedItem: null,
+        dragOverColumn: null,
+        dragOverIndex: null,
+        dragOutside: false,
+      });
+    },
+    [dragState.draggedItem]
+  );
+
+  // Trash drop handler
+  const handleTrashDrop = useCallback(() => {
+    if (!dragState.draggedItem) return;
+
+    if (dragState.draggedItem.type === "card") {
+      setBoard((prevBoard) =>
+        BoardService.removeCard(prevBoard, dragState.draggedItem!.id)
+      );
+    } else if (dragState.draggedItem.type === "column") {
+      setBoard((prevBoard) =>
+        BoardService.removeColumn(prevBoard, dragState.draggedItem!.id)
       );
     }
 
@@ -633,146 +858,226 @@ const TrelloHub: React.FC = () => {
       draggedItem: null,
       dragOverColumn: null,
       dragOverIndex: null,
-      dragOutside: false
-    });
-  }, [dragState.draggedItem]);
-
-  // Column reorder drop
-  const handleColumnDrop = useCallback((toIndex: number) => {
-    if (!dragState.draggedItem || dragState.draggedItem.type !== 'column') return;
-
-    const fromIndex = dragState.draggedItem.sourceIndex;
-    if (fromIndex !== undefined && fromIndex !== toIndex) {
-      setBoard(prevBoard => BoardService.moveColumn(prevBoard, fromIndex, toIndex));
-    }
-
-    setDragState({
-      draggedItem: null,
-      dragOverColumn: null,
-      dragOverIndex: null,
-      dragOutside: false
-    });
-  }, [dragState.draggedItem]);
-
-  // Trash drop handler
-  const handleTrashDrop = useCallback(() => {
-    if (!dragState.draggedItem) return;
-
-    if (dragState.draggedItem.type === 'card') {
-      setBoard(prevBoard => BoardService.removeCard(prevBoard, dragState.draggedItem!.id));
-    } else if (dragState.draggedItem.type === 'column') {
-      setBoard(prevBoard => BoardService.removeColumn(prevBoard, dragState.draggedItem!.id));
-    }
-
-    setDragState({
-      draggedItem: null,
-      dragOverColumn: null,
-      dragOverIndex: null,
-      dragOutside: false
+      dragOutside: false,
     });
   }, [dragState.draggedItem]);
 
   // Column Management (Interface Segregation)
+  // Substitua a função handleAddColumn:
   const handleAddColumn = useCallback(() => {
-    const title = prompt('Nome da coluna:');
-    if (title?.trim()) {
-      const newColumn = ColumnService.createColumn(title.trim());
-      setBoard(prevBoard => BoardService.addColumn(prevBoard, newColumn));
-    }
+    setInputModal({
+      isOpen: true,
+      title: "Nome da coluna",
+      defaultValue: "",
+      onConfirm: (title) => {
+        if (title.trim()) {
+          const newColumn = ColumnService.createColumn(title.trim());
+          setBoard((prevBoard) => BoardService.addColumn(prevBoard, newColumn));
+        }
+        setInputModal({
+          isOpen: false,
+          title: "",
+          defaultValue: "",
+          onConfirm: () => {},
+        });
+      },
+      onCancel: () =>
+        setInputModal({
+          isOpen: false,
+          title: "",
+          defaultValue: "",
+          onConfirm: () => {},
+        }),
+    });
   }, []);
 
-  const handleEditColumn = useCallback((columnId: string) => {
-    const column = board.columns.find(col => col.id === columnId);
-    if (column) {
-      const newTitle = prompt('Novo nome da coluna:', column.title);
-      if (newTitle?.trim()) {
-        const updatedColumn = ColumnService.updateColumnTitle(column, newTitle.trim());
-        setBoard(prevBoard => BoardService.updateColumn(prevBoard, columnId, updatedColumn));
+  const handleEditColumn = useCallback(
+    (columnId: string) => {
+      const column = board.columns.find((col) => col.id === columnId);
+      if (column) {
+        setInputModal({
+          isOpen: true,
+          title: "Novo nome da coluna",
+          defaultValue: column.title,
+          onConfirm: (newTitle) => {
+            if (newTitle.trim()) {
+              const updatedColumn = ColumnService.updateColumnTitle(
+                column,
+                newTitle.trim()
+              );
+              setBoard((prevBoard) =>
+                BoardService.updateColumn(prevBoard, columnId, updatedColumn)
+              );
+            }
+            setInputModal({
+              isOpen: false,
+              title: "",
+              defaultValue: "",
+              onConfirm: () => {},
+            });
+          },
+          onCancel: () =>
+            setInputModal({
+              isOpen: false,
+              title: "",
+              defaultValue: "",
+              onConfirm: () => {},
+            }),
+        });
       }
-    }
-  }, [board.columns]);
+    },
+    [board.columns]
+  );
 
   const handleDeleteColumn = useCallback((columnId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta coluna?')) {
-      setBoard(prevBoard => BoardService.removeColumn(prevBoard, columnId));
-    }
+    setConfirmationModal({
+      isOpen: true,
+      message: "Tem certeza que deseja excluir esta coluna?",
+      onConfirm: () => {
+        setBoard((prevBoard) => BoardService.removeColumn(prevBoard, columnId));
+        setConfirmationModal({
+          isOpen: false,
+          message: "",
+          onConfirm: () => {},
+        });
+      },
+      onCancel: () =>
+        setConfirmationModal({
+          isOpen: false,
+          message: "",
+          onConfirm: () => {},
+        }),
+    });
   }, []);
 
   // Card Management
   const handleAddCard = useCallback((columnId: string) => {
     setModalState({
-      type: 'card',
+      type: "card",
       isOpen: true,
-      data: { columnId, mode: 'create' }
+      data: { columnId, mode: "create" },
     });
-    setFormData({ title: '', description: '' });
+    setFormData({ title: "", description: "" });
   }, []);
 
   const handleEditCard = useCallback((card: Card) => {
     setModalState({
-      type: 'card',
+      type: "card",
       isOpen: true,
-      data: { card, mode: 'edit' }
+      data: { card, mode: "edit" },
     });
-    setFormData({ title: card.title, description: card.description || '' });
+    setFormData({ title: card.title, description: card.description || "" });
   }, []);
 
   const handleDeleteCard = useCallback((columnId: string, cardId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este cartão?')) {
-      setBoard(prevBoard => {
-        const column = prevBoard.columns.find(col => col.id === columnId);
-        if (column) {
-          const updatedColumn = ColumnService.removeCardFromColumn(column, cardId);
-          return BoardService.updateColumn(prevBoard, columnId, updatedColumn);
-        }
-        return prevBoard;
-      });
-    }
+    setConfirmationModal({
+      isOpen: true,
+      message: "Tem certeza que deseja excluir este cartão?",
+      onConfirm: () => {
+        setBoard((prevBoard) => {
+          const column = prevBoard.columns.find((col) => col.id === columnId);
+          if (column) {
+            const updatedColumn = ColumnService.removeCardFromColumn(
+              column,
+              cardId
+            );
+            return BoardService.updateColumn(
+              prevBoard,
+              columnId,
+              updatedColumn
+            );
+          }
+          return prevBoard;
+        });
+        setConfirmationModal({
+          isOpen: false,
+          message: "",
+          onConfirm: () => {},
+        });
+      },
+      onCancel: () =>
+        setConfirmationModal({
+          isOpen: false,
+          message: "",
+          onConfirm: () => {},
+        }),
+    });
   }, []);
 
   const handleModalSubmit = useCallback(() => {
     const { type, data } = modalState;
-    
-    if (type === 'card') {
-      if (data.mode === 'create') {
+
+    if (type === "card") {
+      if (data.mode === "create") {
         if (formData.title.trim()) {
-          const newCard = CardService.createCard(formData.title.trim(), formData.description.trim());
-          setBoard(prevBoard => {
-            const column = prevBoard.columns.find(col => col.id === data.columnId);
+          const newCard = CardService.createCard(
+            formData.title.trim(),
+            formData.description.trim()
+          );
+          setBoard((prevBoard) => {
+            const column = prevBoard.columns.find(
+              (col) => col.id === data.columnId
+            );
             if (column) {
-              const updatedColumn = ColumnService.addCardToColumn(column, newCard);
-              return BoardService.updateColumn(prevBoard, data.columnId, updatedColumn);
+              const updatedColumn = ColumnService.addCardToColumn(
+                column,
+                newCard
+              );
+              return BoardService.updateColumn(
+                prevBoard,
+                data.columnId,
+                updatedColumn
+              );
             }
             return prevBoard;
           });
         }
-      } else if (data.mode === 'edit') {
+      } else if (data.mode === "edit") {
         const updatedCard = CardService.updateCard(data.card, {
           title: formData.title.trim(),
-          description: formData.description.trim()
+          description: formData.description.trim(),
         });
-        
-        setBoard(prevBoard => {
-          const column = prevBoard.columns.find(col => 
-            col.cards.some(card => card.id === data.card.id)
+
+        setBoard((prevBoard) => {
+          const column = prevBoard.columns.find((col) =>
+            col.cards.some((card) => card.id === data.card.id)
           );
           if (column) {
             const updatedColumn = {
               ...column,
-              cards: column.cards.map(card => 
+              cards: column.cards.map((card) =>
                 card.id === data.card.id ? updatedCard : card
-              )
+              ),
             };
-            return BoardService.updateColumn(prevBoard, column.id, updatedColumn);
+            return BoardService.updateColumn(
+              prevBoard,
+              column.id,
+              updatedColumn
+            );
           }
           return prevBoard;
         });
       }
     }
-    
+
     setModalState({ type: null, isOpen: false });
-    setFormData({ title: '', description: '' });
+    setFormData({ title: "", description: "" });
   }, [modalState, formData]);
+
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    message: string;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({ isOpen: false, message: "", onConfirm: () => {} });
+
+  const [inputModal, setInputModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    defaultValue: string;
+    onConfirm: (value: string) => void;
+    onCancel?: () => void;
+  }>({ isOpen: false, title: "", defaultValue: "", onConfirm: () => {} });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
@@ -791,10 +1096,13 @@ const TrelloHub: React.FC = () => {
         <div className="flex space-x-6 overflow-x-auto pb-4">
           <ColumnDropZone
             index={0}
-            isActive={dragState.draggedItem?.type === 'column' && dragState.dragOverIndex === 0}
+            isActive={
+              dragState.draggedItem?.type === "column" &&
+              dragState.dragOverIndex === 0
+            }
             onDrop={handleColumnDrop}
           />
-          
+
           {board.columns.map((column, index) => (
             <React.Fragment key={column.id}>
               <div data-column-id={column.id}>
@@ -817,7 +1125,10 @@ const TrelloHub: React.FC = () => {
               </div>
               <ColumnDropZone
                 index={index + 1}
-                isActive={dragState.draggedItem?.type === 'column' && dragState.dragOverIndex === index + 1}
+                isActive={
+                  dragState.draggedItem?.type === "column" &&
+                  dragState.dragOverIndex === index + 1
+                }
                 onDrop={handleColumnDrop}
               />
             </React.Fragment>
@@ -827,16 +1138,15 @@ const TrelloHub: React.FC = () => {
 
       {/* Trash Zone - only visible when dragging */}
       {dragState.draggedItem && (
-        <TrashZone
-          isActive={dragState.dragOutside}
-          onDrop={handleTrashDrop}
-        />
+        <TrashZone isActive={dragState.dragOutside} onDrop={handleTrashDrop} />
       )}
 
       <Modal
         isOpen={modalState.isOpen}
         onClose={() => setModalState({ type: null, isOpen: false })}
-        title={modalState.data?.mode === 'edit' ? 'Editar Cartão' : 'Novo Cartão'}
+        title={
+          modalState.data?.mode === "edit" ? "Editar Cartão" : "Novo Cartão"
+        }
       >
         <div className="space-y-4">
           <div>
@@ -846,7 +1156,9 @@ const TrelloHub: React.FC = () => {
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, title: e.target.value }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Digite o título do cartão"
               autoFocus
@@ -858,7 +1170,12 @@ const TrelloHub: React.FC = () => {
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               rows={3}
               placeholder="Digite a descrição do cartão"
@@ -876,11 +1193,42 @@ const TrelloHub: React.FC = () => {
               disabled={!formData.title.trim()}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors"
             >
-              {modalState.data?.mode === 'edit' ? 'Salvar' : 'Criar'}
+              {modalState.data?.mode === "edit" ? "Salvar" : "Criar"}
             </button>
           </div>
         </div>
       </Modal>
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        message={confirmationModal.message}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={
+          confirmationModal.onCancel ||
+          (() =>
+            setConfirmationModal({
+              isOpen: false,
+              message: "",
+              onConfirm: () => {},
+            }))
+        }
+      />
+
+      <InputModal
+        isOpen={inputModal.isOpen}
+        title={inputModal.title}
+        defaultValue={inputModal.defaultValue}
+        onConfirm={inputModal.onConfirm}
+        onCancel={
+          inputModal.onCancel ||
+          (() =>
+            setInputModal({
+              isOpen: false,
+              title: "",
+              defaultValue: "",
+              onConfirm: () => {},
+            }))
+        }
+      />
     </div>
   );
 };
