@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
-import { github_auth_service } from './github/github-auth-service';
-import { github_api_service } from "./github/github-api-service";
+import { github_auth_service } from './github/github-auth-service.js';
+import { github_api_service } from "./github/github-api-service.js";
 
 const githubAuthService = new github_auth_service();
 const githubApiService = new github_api_service();

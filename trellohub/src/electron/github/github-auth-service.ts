@@ -2,7 +2,8 @@ import { Octokit } from '@octokit/rest';
 // import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
 import type { github_user, github_auth_token } from '../types/github'; //* o type é maneiro para interfaces
 
-const axios = require("axios/dist/node/axios.cjs");
+// const axios = require("axios/dist/node/axios.cjs");
+import axios from 'axios';
 
 export interface github_auth_service_interface {
     get_oauth_url(): string;
@@ -60,7 +61,7 @@ export class github_auth_service implements github_auth_service_interface {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
+                data: JSON.stringify({
                     client_id: this.client_id,
                     client_secret: this.client_secret,
                     code: code,
@@ -114,7 +115,7 @@ export class github_auth_service implements github_auth_service_interface {
                     'Accept': 'application/vnd.github.v3+json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
+                data: JSON.stringify({
                     access_token: token,
                 }),
             });
