@@ -1,18 +1,14 @@
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
-const path = require("path");
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import path from 'path';
+import { github_auth_service } from './github/github-auth-service.js';
+import { github_api_service } from "./github/github-api-service.js";
 
-import { Github_auth_service } from "../../src/services/github/github-auth-service";
-import { Github_api_service } from "../../src/services/github/github-api-service";
+const githubAuthService = new github_auth_service();
+const githubApiService = new github_api_service();
 
-// const Github_auth_service = require("../../src/services/github/github-auth-service");
-// const Github_api_service = require("../../src/services/github/github-api-service");
+let mainWindow: BrowserWindow | null = null;
 
-const githubAuthService = new Github_auth_service();
-const githubApiService = new Github_api_service();
-
-let mainWindow;
-
-function createWindow() {
+function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -24,21 +20,11 @@ function createWindow() {
   });
 
   mainWindow.loadURL("http://localhost:5173");
-
   mainWindow.webContents.openDevTools();
 }
 
-ipcMain.handle("github:get-oauth-url", async () => {
-  try {
-    console.log("📡 Handler: get-oauth-url");
-    return githubAuthService.get_oauth_url();
-  } catch (error) {
-    console.error("❌ Erro get-oauth-url:", error);
-    throw error;
-  }
-});
-
-ipcMain.handle("github:exchange-code-for-token", async (event, code) => {
+// Handlers com tipos explícitos
+ipcMain.handle("github:exchange-code-for-token", async (event, code: string) => {
   try {
     console.log("📡 Handler: exchange-code-for-token");
     return await githubAuthService.exchange_code_for_token(code);
@@ -48,7 +34,7 @@ ipcMain.handle("github:exchange-code-for-token", async (event, code) => {
   }
 });
 
-ipcMain.handle("github:get-authenticated-user", async (event, token) => {
+ipcMain.handle("github:get-authenticated-user", async (event, token: string) => {
   try {
     console.log("📡 Handler: get-authenticated-user");
     return await githubAuthService.get_authenticated_user(token);
@@ -58,7 +44,7 @@ ipcMain.handle("github:get-authenticated-user", async (event, token) => {
   }
 });
 
-ipcMain.handle("github:is-token-valid", async (event, token) => {
+ipcMain.handle("github:is-token-valid", async (event, token: string) => {
   try {
     console.log("📡 Handler: is-token-valid");
     return await githubAuthService.is_token_valid(token);
@@ -68,7 +54,7 @@ ipcMain.handle("github:is-token-valid", async (event, token) => {
   }
 });
 
-ipcMain.handle("github:revoke-token", async (event, token) => {
+ipcMain.handle("github:revoke-token", async (event, token: string) => {
   try {
     console.log("📡 Handler: revoke-token");
     return await githubAuthService.revoke_token(token);
@@ -78,7 +64,7 @@ ipcMain.handle("github:revoke-token", async (event, token) => {
   }
 });
 
-ipcMain.handle("github:get-user-repositories", async (event, token) => {
+ipcMain.handle("github:get-user-repositories", async (event, token: string) => {
   try {
     console.log("📡 Handler: get-user-repositories");
     return await githubApiService.get_user_repositories(token);
@@ -90,7 +76,7 @@ ipcMain.handle("github:get-user-repositories", async (event, token) => {
 
 ipcMain.handle(
   "github:get-repository-data",
-  async (event, token, owner, repo) => {
+  async (event, token: string, owner: string, repo: string) => {
     try {
       console.log("📡 Handler: get-repository-data");
       return await githubApiService.get_repository_data(token, owner, repo);
@@ -101,7 +87,7 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle("open-external", async (event, url) => {
+ipcMain.handle("open-external", async (event, url: string) => {
   try {
     console.log("🌐 Abrindo URL externa:", url);
     await shell.openExternal(url);
@@ -111,10 +97,11 @@ ipcMain.handle("open-external", async (event, url) => {
   }
 });
 
-ipcMain.handle("log", async (event, message) => {
+ipcMain.handle("log", async (event, message: string) => {
   console.log("📝 Log do renderer:", message);
 });
 
+// Resto do código permanece igual
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
