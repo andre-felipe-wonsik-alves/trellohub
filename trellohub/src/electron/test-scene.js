@@ -7,5 +7,5 @@ app.whenReady().then(() => {
     height: 600,
   });
 
-  win.loadURL("https://localhost:5173");
+  win.loadURL("http://localhost:5173");
 });
