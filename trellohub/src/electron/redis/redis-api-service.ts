@@ -1,21 +1,33 @@
+import { error } from 'console';
 import { createClient } from 'redis'
 
-export class redisService {
-    private client;
-    private stored_keys: any[];
+export class redis_service {
+    private client: any;
+    private stored_keys: any[] = [1,2,3,4];
 
     constructor(){
-        this.client = this.gen_redis_connection()
+        console.log('create connection with redis');
     }
 
-    private async gen_redis_connection(): Promise<any> {
+    async gen_redis_connection(): Promise<any> {
         return await createClient()
                         .on("error", (err) => console.log("Redis Client Error", err))
                         .connect();
     }
 
     async post_redis(req: any): Promise<void> {
-        this.client.set("");
+        this.client.set("1", "teste");
+    }
+
+    async get_redis(key: string): Promise<string | null> {
+        try {
+            let get = this.client.get("1", "teste");
+            if(!get || get == "") throw error;
+            return get;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
     }
 
     async scan_all_stored(){

@@ -2,9 +2,12 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { github_auth_service } from './github/github-auth-service.js';
 import { github_api_service } from "./github/github-api-service.js";
+import { redis_service } from './redis/redis-api-service.js' 
+import { error } from 'console';
 
 const githubAuthService = new github_auth_service();
 const githubApiService = new github_api_service();
+const redisService = new redis_service();
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -87,6 +90,27 @@ ipcMain.handle(
   }
 );
 
+ipcMain.handle('redis:get_redis', async (req: any) => {
+  try {
+    console.log('Redis: get');
+    let get = await redisService.get_redis("1");
+    console.log(get);
+    if(!get) throw error;
+    return get;
+  } catch (error) {
+    console.error(error)
+  }
+});
+
+ipcMain.handle('redis:post_redis', async (req: any) => {
+  try {
+    console.log('Redis: post');
+    await redisService.post_redis("teste");
+  } catch (error) {
+    console.error(error)
+  }
+});
+
 ipcMain.handle("open-external", async (event, url: string) => {
   try {
     console.log("🌐 Abrindo URL externa:", url);
@@ -100,6 +124,8 @@ ipcMain.handle("open-external", async (event, url: string) => {
 ipcMain.handle("log", async (event, message: string) => {
   console.log("📝 Log do renderer:", message);
 });
+
+
 
 // Resto do código permanece igual
 app.whenReady().then(createWindow);
