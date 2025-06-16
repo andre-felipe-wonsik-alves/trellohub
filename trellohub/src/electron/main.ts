@@ -16,10 +16,10 @@ function createWindow(): void {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, "preload.js"),
-    },
+  },
   });
 
-  mainWindow.loadURL("http://localhost:5173");
+  mainWindow.loadURL("http://localhost:5173/");
   mainWindow.webContents.openDevTools();
 }
 
