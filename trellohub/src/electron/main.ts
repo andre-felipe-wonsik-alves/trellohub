@@ -2,14 +2,18 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { github_auth_service } from './github/github-auth-service.js';
 import { github_api_service } from "./github/github-api-service.js";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const githubAuthService = new github_auth_service();
 const githubApiService = new github_api_service();
 
 let mainWindow: BrowserWindow | null = null;
 
-function createWindow(): void {
-  mainWindow = new BrowserWindow({
+async function createWindow(): Promise<void> {
+  mainWindow = await new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
