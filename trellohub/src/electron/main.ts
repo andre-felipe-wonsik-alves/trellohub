@@ -27,7 +27,6 @@ async function createWindow(): Promise<void> {
   });
 
   mainWindow.loadURL("http://localhost:5173");
-  mainWindow.webContents.openDevTools();
 }
 
 // Handlers com tipos explícitos
@@ -94,10 +93,10 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle('redis:get_redis', async (req: any) => {
+ipcMain.handle('redis:get', async (req: any) => {
   try {
     console.log('Redis: get');
-    let get = await redisService.get_redis("1");
+    let get = await redisService.get_value_from_key("1");
     console.log(get);
     if(!get) throw error;
     return get;
@@ -106,10 +105,10 @@ ipcMain.handle('redis:get_redis', async (req: any) => {
   }
 });
 
-ipcMain.handle('redis:post_redis', async (req: any) => {
+ipcMain.handle('redis:posts', async (req: any) => {
   try {
     console.log('Redis: post');
-    await redisService.post_redis("teste");
+    await redisService.post_value("teste");
   } catch (error) {
     console.error(error)
   }

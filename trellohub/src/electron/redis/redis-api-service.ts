@@ -6,6 +6,7 @@ export class redis_service {
     private stored_keys: any[] = [1,2,3,4];
 
     constructor(){
+        this.client = "aaaa";
         console.log('create connection with redis');
     }
 
@@ -15,11 +16,11 @@ export class redis_service {
                         .connect();
     }
 
-    async post_redis(req: any): Promise<void> {
+    async post_value(req: any): Promise<void> {
         this.client.set("1", "teste");
     }
 
-    async get_redis(key: string): Promise<string | null> {
+    async get_value_from_key(key: string): Promise<string | null> {
         try {
             let get = this.client.get("1", "teste");
             if(!get || get == "") throw error;

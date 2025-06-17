@@ -9,7 +9,7 @@
     "build:react": "tsc -b && vite build",
     "build": "npm run build:electron && npm run build:react",
     "start": "npm run build:electron && electron dist/electron/main.js",
-    "start:electron": "npx electron dist/electron/main.js --gtk-version=3",
+    "start:electron": "tsc -p tsconfig.electron.json && npx electron dist/electron/main.js --gtk-version=3",
     "dev:electron": "tsc -p tsconfig.electron.json -w",
     "dev:react": "vite"
   },
