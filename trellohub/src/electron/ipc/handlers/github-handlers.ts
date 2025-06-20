@@ -1,7 +1,6 @@
-// src/electron/ipc/handlers/github-handlers.ts
 import { ipcMain } from 'electron';
-import { GithubAuthService } from '../../github/github-auth-service.ts';
-import { GithubApiService } from '../../github/github-api-service.ts';
+import { GithubAuthService } from '../../github/github-auth-service.js';
+import { GithubApiService } from '../../github/github-api-service.js';
 
 const authService = new GithubAuthService();
 const apiService = new GithubApiService();
@@ -16,17 +15,10 @@ const GITHUB_CHANNELS = {
     AUTHORIZATION_CODE_RECEIVED: 'github:authorization-code-received',
 } as const;
 
-/**
- * Handlers para operações do GitHub
- */
 export const githubHandlers = {
-    /**
-     * Registra todos os handlers do GitHub
-     */
     register(): void {
         console.log('Registrando handlers do GitHub...');
 
-        // Autenticação
         ipcMain.handle(GITHUB_CHANNELS.GET_OAUTH_URL, async () => {
             try {
                 return await authService.get_oauth_url();
@@ -63,7 +55,6 @@ export const githubHandlers = {
             }
         });
 
-        // Repositórios
         ipcMain.handle(GITHUB_CHANNELS.GET_USER_REPOSITORIES, async (event, token: string) => {
             try {
                 return await apiService.get_user_repositories(token);
@@ -82,18 +73,13 @@ export const githubHandlers = {
             }
         });
 
-        // Eventos (não retornam valor)
         ipcMain.on(GITHUB_CHANNELS.AUTHORIZATION_CODE_RECEIVED, (event, code: string) => {
             console.log('Código de autorização recebido:', code);
-            // Aqui você pode implementar lógica adicional se necessário
         });
 
         console.log('Handlers do GitHub registrados');
     },
 
-    /**
-     * Remove todos os handlers do GitHub
-     */
     unregister(): void {
         console.log('Removendo handlers do GitHub...');
 

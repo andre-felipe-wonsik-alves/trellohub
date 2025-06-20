@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
-import { githubHandlers } from './handlers/github-handlers.ts';
-import { systemHandlers } from './handlers/system-handlers.ts';
+import { githubHandlers } from './handlers/github-handlers.js';
+import { systemHandlers } from './handlers/system-handlers.js';
 
 export function registerIpcHandlers(): void {
     console.log('Registrando handlers IPC...');

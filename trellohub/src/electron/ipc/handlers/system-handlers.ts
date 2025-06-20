@@ -8,7 +8,7 @@ const SYSTEM_CHANNELS = {
 
 export const systemHandlers = {
     register(): void {
-        console.log('⚙️ Registrando handlers do sistema...');
+        console.log('Registrando handlers do sistema...');
 
         ipcMain.handle(SYSTEM_CHANNELS.OPEN_EXTERNAL, async (event, url: string) => {
             try {
@@ -25,7 +25,7 @@ export const systemHandlers = {
                 await shell.openExternal(url);
                 return { success: true };
             } catch (error) {
-                console.error('❌ Erro ao abrir URL externa:', error);
+                console.error('Erro ao abrir URL externa:', error);
                 throw error;
             }
         });
@@ -35,7 +35,7 @@ export const systemHandlers = {
                 const { app } = await import('electron');
                 return app.getVersion();
             } catch (error) {
-                console.error('❌ Erro ao obter versão da aplicação:', error);
+                console.error('Erro ao obter versão da aplicação:', error);
                 throw error;
             }
         });
@@ -44,21 +44,21 @@ export const systemHandlers = {
             try {
                 return process.platform;
             } catch (error) {
-                console.error('❌ Erro ao obter plataforma:', error);
+                console.error('Erro ao obter plataforma:', error);
                 throw error;
             }
         });
 
-        console.log('✅ Handlers do sistema registrados');
+        console.log('Handlers do sistema registrados');
     },
 
     unregister(): void {
-        console.log('🧹 Removendo handlers do sistema...');
+        console.log('Removendo handlers do sistema...');
 
         Object.values(SYSTEM_CHANNELS).forEach(channel => {
             ipcMain.removeAllListeners(channel);
         });
 
-        console.log('✅ Handlers do sistema removidos');
+        console.log('Handlers do sistema removidos');
     }
 };

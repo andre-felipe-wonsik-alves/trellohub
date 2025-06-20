@@ -20,25 +20,12 @@ export async function createWindow(): Promise<BrowserWindow> {
             allowRunningInsecureContent: false,
         },
         titleBarStyle: 'default',
-        show: false, // Não mostrar até estar pronto
+        show: false,
     });
+    mainWindow.loadURL('http://localhost:5173');
 
-    // Carregar a aplicação React
-    if (process.env.NODE_ENV === 'development') {
-        mainWindow.loadURL('http://localhost:5173');
-        mainWindow.webContents.openDevTools();
-    } else {
-        mainWindow.loadFile(path.join(__dirname, '../../../dist/index.html'));
-    }
-
-    // Mostrar a janela quando estiver pronta
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
-    });
-
-    // Configurações de segurança
-    mainWindow.webContents.on('did-finish-load', () => {
-        console.log('✅ Janela principal carregada');
     });
 
     return mainWindow;
