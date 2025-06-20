@@ -16,7 +16,7 @@ interface ElectronAPI {
     getRepositoryData: (token: string, owner: string, repo: string) => Promise<repository_data>;
     
     // Redis APIs
-    getRedisMock: (req: any) => Promise<string | null>;
+    getRedisMock: (req: string) => Promise<string | null>;
 
     // System APIs
     openExternal: (url: string) => Promise<void>;

@@ -105,7 +105,7 @@ ipcMain.handle('redis:get', async (req: any) => {
   }
 });
 
-ipcMain.handle('redis:get_mock', async(req: any) => {
+ipcMain.handle('redis:get-mock', async(req: any) => {
   try {
     console.log('MOCK: GET');
     return redisService.get_mock(req);
@@ -114,7 +114,7 @@ ipcMain.handle('redis:get_mock', async(req: any) => {
   }
 })
 
-ipcMain.handle('redis:posts', async (req: any) => {
+ipcMain.handle('redis:post', async (req: any) => {
   try {
     console.log('Redis: post');
     await redisService.post_value("teste");
