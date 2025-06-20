@@ -5,7 +5,7 @@ import type { github_user, github_auth_token } from '../types/github'; //* o typ
 // const axios = require("axios/dist/node/axios.cjs");
 import axios from 'axios';
 
-export interface github_auth_service_interface {
+export interface GithubAuthService_interface {
     get_oauth_url(): string;
     get_authenticated_user(token: string): Promise<github_user>;
     exchange_code_for_token(code: string): Promise<github_auth_token>;
@@ -13,7 +13,7 @@ export interface github_auth_service_interface {
     revoke_token(token: string): Promise<void>;
 }
 
-export class github_auth_service implements github_auth_service_interface {
+export class GithubAuthService implements GithubAuthService_interface {
     private readonly client_id: string;
     private readonly client_secret: string;
     private readonly redirect_uri: string;

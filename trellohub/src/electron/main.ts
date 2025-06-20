@@ -1,40 +1,31 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
-import path from 'path';
+import { app, BrowserWindow } from 'electron';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { registerIpcHandlers } from './ipc/ipc-handler.ts';
+import { createWindow } from './windows/main-window.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 
-async function createWindow(): Promise<void> {
-  mainWindow = await new BrowserWindow({
-    width: 1200,
-    height: 800,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, "preload.js"),
-    },
-  });
+async function setupApp(): Promise<void> {
+  registerIpcHandlers();
 
-  mainWindow.loadURL("http://localhost:5173");
+  mainWindow = await createWindow();
 }
 
+app.whenReady().then(setupApp);
 
-// Resto do código permanece igual
-app.whenReady().then(createWindow);
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-app.on("activate", () => {
+app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    setupApp();
   }
 });
 
