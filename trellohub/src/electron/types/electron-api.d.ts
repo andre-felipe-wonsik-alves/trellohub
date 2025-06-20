@@ -14,6 +14,9 @@ interface ElectronAPI {
     revokeToken: (token: string) => Promise<void>;
     getUserRepositories: (token: string) => Promise<github_repository[]>;
     getRepositoryData: (token: string, owner: string, repo: string) => Promise<repository_data>;
+    
+    // Redis APIs
+    getRedisMock: (req: any) => Promise<string | null>;
 
     // System APIs
     openExternal: (url: string) => Promise<void>;

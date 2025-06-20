@@ -31,6 +31,15 @@ export class redis_service {
         }
     }
 
+    async get_mock(key: string): Promise<string | null> {
+         try {
+            return "GET - "+key;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
     async scan_all_stored(){
         let stored;
         for await (const key of this.client.scanIterator()) {

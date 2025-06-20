@@ -1,10 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [result, setResult] = useState(0);
+
+  const getMock = async () => {
+    try {
+      const response = await window.electronAPI.getRedisMock("teste");
+      setResult(response);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+
+  useEffect(() => {
+    getMock();
+  }, [])
 
   return (
     <>
@@ -18,8 +32,8 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+        <button onClick={getMock}>
+          result: {result}
         </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
