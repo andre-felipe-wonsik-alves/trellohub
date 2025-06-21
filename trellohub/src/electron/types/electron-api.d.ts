@@ -1,22 +1,31 @@
-import {
-    github_user,
-    github_repository,
-    repository_data,
-    github_auth_token
-} from '../types/github';
+interface GitHubAPI {
+    getOAuthUrl: () => Promise<string>;
+    exchangeCodeForToken: (code: string) => Promise<string>;
+    getAuthenticatedUser: (token: string) => Promise<any>;
+    isTokenValid: (token: string) => Promise<boolean>;
+    revokeToken: (token: string) => Promise<boolean>;
+    getUserRepositories: (token: string) => Promise<any[]>;
+    getRepositoryData: (token: string, owner: string, repo: string) => Promise<any>;
+    sendAuthorizationCode: (code: string) => void;
+}
+
+interface SystemAPI {
+    openExternal: (url: string) => Promise<{ success: boolean }>;
+    getAppVersion: () => Promise<string>;
+    getPlatform: () => Promise<string>;
+}
 
 interface ElectronAPI {
-    // GitHub OAuth APIs
+    github: GitHubAPI;
+    system: SystemAPI;
     getOAuthUrl: () => Promise<string>;
-    exchangeCodeForToken: (code: string) => Promise<github_auth_token>;
-    getAuthenticatedUser: (token: string) => Promise<github_user>;
+    exchangeCodeForToken: (code: string) => Promise<string>;
+    getAuthenticatedUser: (token: string) => Promise<any>;
     isTokenValid: (token: string) => Promise<boolean>;
-    revokeToken: (token: string) => Promise<void>;
-    getUserRepositories: (token: string) => Promise<github_repository[]>;
-    getRepositoryData: (token: string, owner: string, repo: string) => Promise<repository_data>;
-
-    // System APIs
-    openExternal: (url: string) => Promise<void>;
+    revokeToken: (token: string) => Promise<boolean>;
+    getUserRepositories: (token: string) => Promise<any[]>;
+    getRepositoryData: (token: string, owner: string, repo: string) => Promise<any>;
+    openExternal: (url: string) => Promise<{ success: boolean }>;
 }
 
 declare global {

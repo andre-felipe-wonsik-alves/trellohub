@@ -30,27 +30,20 @@ export class GithubAuthService implements GithubAuthService_interface {
         this.client_secret = client_secret;
         this.redirect_uri = redirect_uri;
         this.scopes = scopes;
-
-        // this.oauth_app = new Octokit({
-        //     auth: createOAuthAppAuth({
-        //         clientType: 'oauth-app',
-        //         clientId: this.client_id,
-        //         clientSecret: this.client_secret,
-        //     }),
-        //     userAgent: 'TrelloHub',
-        // });
     }
 
     get_oauth_url(): string {
-        const base_url = 'https://github.com/login/oauth/authorize';
-        const params = new URLSearchParams({
-            client_id: this.client_id,
-            redirect_uri: this.redirect_uri,
-            scope: this.scopes.join(' '),
-            state: this.generate_state(),
-        });
+        console.log("teste ipc");
+        return '';
+        // const base_url = 'https://github.com/login/oauth/authorize';
+        // const params = new URLSearchParams({
+        //     client_id: this.client_id,
+        //     redirect_uri: this.redirect_uri,
+        //     scope: this.scopes.join(' '),
+        //     state: this.generate_state(),
+        // });
 
-        return `${base_url}?${params.toString()}`;
+        // return `${base_url}?${params.toString()}`;
     }
 
     async exchange_code_for_token(code: string): Promise<github_auth_token> {

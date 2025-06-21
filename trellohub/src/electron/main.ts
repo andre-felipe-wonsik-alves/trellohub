@@ -1,6 +1,5 @@
 import { app, BrowserWindow } from 'electron';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { registerIpcHandlers } from './ipc/ipc-handler.js';
 import { createWindow } from './windows/main-window.js';
 
