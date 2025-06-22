@@ -1,9 +1,6 @@
 import { app, BrowserWindow } from 'electron';
-import { fileURLToPath } from 'url';
 import { registerIpcHandlers } from './ipc/ipc-handler.js';
 import { createWindow } from './windows/main-window.js';
-
-const __filename = fileURLToPath(import.meta.url);
 
 let mainWindow: BrowserWindow | null = null;
 

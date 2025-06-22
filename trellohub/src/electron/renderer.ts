@@ -1,4 +1,4 @@
-/// <reference path="./types/electron-api.d.ts" />
+/// <reference path="../../public/types/electron-api.d.ts" />
 
 class GitHubTestSuite {
   token: any;
