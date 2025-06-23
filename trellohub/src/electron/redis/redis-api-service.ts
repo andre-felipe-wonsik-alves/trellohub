@@ -1,7 +1,7 @@
 import { error } from 'console';
 import { createClient } from 'redis'
 
-export class redis_service {
+export class redisService {
     private client: any;
     private stored_keys: any[] = [1,2,3,4];
 
