@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { redisService } from '../../redis/redis-api-service';
+import { redisService } from '../../redis/redis-api-service.js';
 
 const _redisService = new redisService();
 
@@ -7,7 +7,7 @@ const REDIS_CHANNELS = {
     GET_MOCK: 'redis:get-mock'
 } as const;
 
-export const githubHandlers = {
+export const redisHandlers = {
     register(): void {
         console.log('Registrando handlers do redis...');
 
