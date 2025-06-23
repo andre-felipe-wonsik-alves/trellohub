@@ -7,7 +7,6 @@ import TrashZone from "./TrashZone";
 import Modal from "./Modal";
 import InputModal from "./InputModal";
 import ConfirmationModal from "./ConfirmationModal";
-import CardComponent from "./CardComponent"; // usado para modais
 import { CardModel } from "../models/CardModel";
 import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
@@ -85,47 +84,6 @@ const Board: React.FC = () => {
     description: "",
   });
 
-  // Handlers de coluna
-  const handleAddColumn = () => {
-    setInputModal({
-      isOpen: true,
-      title: "Nova Coluna",
-      defaultValue: "",
-      onConfirm: (title) => {
-        const newCol = ColumnModel.create(title);
-        setBoard((prev) => BoardModel.addColumn(prev, newCol));
-        setInputModal({ ...inputModal, isOpen: false });
-      },
-    });
-  };
-
-  const handleEditColumn = (columnId: string) => {
-    const column = board.columns.find((col) => col.id === columnId);
-    if (!column) return;
-
-    setInputModal({
-      isOpen: true,
-      title: "Renomear Coluna",
-      defaultValue: column.title,
-      onConfirm: (newTitle) => {
-        const updated = ColumnModel.updateTitle(column, newTitle);
-        setBoard((prev) => BoardModel.updateColumn(prev, columnId, updated));
-        setInputModal({ ...inputModal, isOpen: false });
-      },
-    });
-  };
-
-  const handleDeleteColumn = (columnId: string) => {
-    setConfirmationModal({
-      isOpen: true,
-      message: "Tem certeza que deseja excluir esta coluna?",
-      onConfirm: () => {
-        setBoard((prev) => BoardModel.removeColumn(prev, columnId));
-        setConfirmationModal({ ...confirmationModal, isOpen: false });
-      },
-    });
-  };
-
   // Handlers de cartão
   const handleAddCard = (columnId: string) => {
     setCardModal({
@@ -191,7 +149,90 @@ const Board: React.FC = () => {
     setCardModal({ ...cardModal, isOpen: false });
   };
 
-  // Drag and drop (você pode importar os mesmos handlers que criou antes)
+  // Handlers de coluna
+  const handleAddColumn = () => {
+    setInputModal({
+      isOpen: true,
+      title: "Nova Coluna",
+      defaultValue: "",
+      onConfirm: (title) => {
+        const newCol = ColumnModel.create(title);
+        setBoard((prev) => BoardModel.addColumn(prev, newCol));
+        setInputModal({ ...inputModal, isOpen: false });
+      },
+    });
+  };
+
+  const handleEditColumn = (columnId: string) => {
+    const column = board.columns.find((col) => col.id === columnId);
+    if (!column) return;
+
+    setInputModal({
+      isOpen: true,
+      title: "Renomear Coluna",
+      defaultValue: column.title,
+      onConfirm: (newTitle) => {
+        const updated = ColumnModel.updateTitle(column, newTitle);
+        setBoard((prev) => BoardModel.updateColumn(prev, columnId, updated));
+        setInputModal({ ...inputModal, isOpen: false });
+      },
+    });
+  };
+
+  const handleColumnDrop = useCallback(
+      (toIndex: number) => {
+        if (!dragState.draggedItem || dragState.draggedItem.type !== "column")
+          return;
+  
+        const fromIndex = dragState.draggedItem.sourceIndex;
+        if (fromIndex !== undefined && fromIndex !== toIndex) {
+          setBoard((prevBoard) =>
+            BoardModel.moveColumn(prevBoard, fromIndex, toIndex)
+          );
+        }
+  
+        setDragState({
+          draggedItem: null,
+          dragOverColumn: null,
+          dragOverIndex: null,
+          dragOutside: false,
+        });
+      },
+      [dragState.draggedItem]
+    );
+
+    const handleColumnDragStart = 
+        (columnId: string, index: number) => {
+          setDragState({
+            draggedItem: { type: "column", id: columnId, sourceIndex: index },
+            dragOverColumn: null,
+            dragOverIndex: null,
+            dragOutside: false,
+          });
+        };
+    
+      const handleColumnDragEnd = () => {
+        setDragState({
+          draggedItem: null,
+          dragOverColumn: null,
+          dragOverIndex: null,
+          dragOutside: false,
+        });
+      };
+
+  const handleDeleteColumn = (columnId: string) => {
+    setConfirmationModal({
+      isOpen: true,
+      message: "Tem certeza que deseja excluir esta coluna?",
+      onConfirm: () => {
+        setBoard((prev) => BoardModel.removeColumn(prev, columnId));
+        setConfirmationModal({ ...confirmationModal, isOpen: false });
+      },
+    });
+  };
+
+
+  // Drag and drop
   const handleCardDragStart = useCallback(
     (cardId: string, columnId: string, index: number) => {
       setDragState({
@@ -296,6 +337,29 @@ const Board: React.FC = () => {
     [dragState.draggedItem]
   );
 
+ // Trash drop handler
+   const handleTrashDrop = useCallback(() => {
+     if (!dragState.draggedItem) return;
+ 
+     if (dragState.draggedItem.type === "card") {
+       setBoard((prevBoard) =>
+        BoardModel.removeCard(prevBoard, dragState.draggedItem!.id)
+       );
+     } else if (dragState.draggedItem.type === "column") {
+       setBoard((prevBoard) =>
+         BoardModel.removeColumn(prevBoard, dragState.draggedItem!.id)
+       );
+     }
+ 
+     setDragState({
+       draggedItem: null,
+       dragOverColumn: null,
+       dragOverIndex: null,
+       dragOutside: false,
+     });
+   }, [dragState.draggedItem]);
+
+  
   // Efeitos
   React.useEffect(() => {
     if (dragState.draggedItem) {
@@ -319,7 +383,8 @@ const Board: React.FC = () => {
         </div>
 
         <div className="flex space-x-6 overflow-x-auto pb-4">
-          <ColumnDropZone index={0} isActive={false} onDrop={() => {}} />
+          <ColumnDropZone index={0} isActive={dragState.draggedItem?.type === "column" &&
+              dragState.dragOverIndex === 0} onDrop={handleColumnDrop} />
           {board.columns.map((column, index) => (
             <React.Fragment key={column.id}>
               <div data-column-id={column.id}>
@@ -333,21 +398,35 @@ const Board: React.FC = () => {
                   onDeleteColumn={handleDeleteColumn}
                   onCardDragStart={handleCardDragStart}
                   onCardDragEnd={handleCardDragEnd}
-                  onColumnDragStart={() => {}}
-                  onColumnDragEnd={() => {}}
+                  onColumnDragStart={handleColumnDragStart}
+                  onColumnDragEnd={handleColumnDragEnd}
                   onDropZoneDrop={handleDropZoneDrop}
                   dragState={dragState}
-                  isDragging={false}
+                  isDragging={dragState.draggedItem?.id === column.id}
                 />
               </div>
-              <ColumnDropZone index={index + 1} isActive={false} onDrop={() => {}} />
+              <ColumnDropZone index={index} 
+              isActive={
+                dragState.draggedItem?.type === "column" &&
+                  dragState.dragOverIndex === index} 
+                  onDrop={(dropIndex) => {
+                    if (
+                      dragState.draggedItem?.type === "column" &&
+                      typeof dragState.draggedItem.sourceIndex === "number"
+                    ) {
+                      setBoard((prev) =>
+                        BoardModel.moveColumn(prev, dragState.draggedItem?.sourceIndex!, dropIndex)
+                      );
+                      handleColumnDragEnd();
+                    }
+                  }} />
             </React.Fragment>
           ))}
         </div>
       </div>
 
       {dragState.draggedItem && (
-        <TrashZone isActive={dragState.dragOutside} onDrop={() => {}} />
+        <TrashZone isActive={dragState.dragOutside} onDrop={handleTrashDrop} />
       )}
 
       {/* Modais */}
