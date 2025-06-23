@@ -8,12 +8,12 @@ import type {
     github_api_error
 } from '../types/github';
 
-export interface github_api_service_interface {
+export interface GithubApiService_interface {
     get_user_repositories(token: string): Promise<github_repository[]>;
     get_repository_data(token: string, owner: string, repo: string): Promise<repository_data>;
 }
 
-export class github_api_service implements github_api_service_interface {
+export class GithubApiService implements GithubApiService_interface {
     private readonly base_url = 'https://api.github.com';
     private readonly user_agent = 'TrelloHub';
 

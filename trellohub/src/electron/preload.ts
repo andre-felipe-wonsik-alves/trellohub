@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer, shell } from "electron";
 
+console.log("\n\n\nSALVE DO PRELOAD\n\n\n");
+
 const electronAPI = {
   getOAuthUrl: () => ipcRenderer.invoke("github:get-oauth-url"),
   exchangeCodeForToken: (code: string) => ipcRenderer.invoke("github:exchange-code-for-token", code),
