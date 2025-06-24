@@ -1,8 +1,13 @@
 import { ipcMain } from 'electron';
 import { GithubAuthService } from '../../github/github-auth-service.js';
 import { GithubApiService } from '../../github/github-api-service.js';
+import 'dotenv/config';
 
-const authService = new GithubAuthService();
+const authService = new GithubAuthService(
+    process.env.GITHUB_CLIENT_ID!,
+    process.env.GITHUB_CLIENT_SECRET!,
+    process.env.GITHUB_CLIENT_URI!
+);
 const apiService = new GithubApiService();
 
 const GITHUB_CHANNELS = {
@@ -13,6 +18,7 @@ const GITHUB_CHANNELS = {
     GET_USER_REPOSITORIES: 'github:get-user-repositories',
     GET_REPOSITORY_DATA: 'github:get-repository-data',
     AUTHORIZATION_CODE_RECEIVED: 'github:authorization-code-received',
+    OPEN_OAUTH_WINDOW: 'github:open-oauth-window'
 } as const;
 
 export const githubHandlers = {
@@ -75,6 +81,15 @@ export const githubHandlers = {
 
         ipcMain.on(GITHUB_CHANNELS.AUTHORIZATION_CODE_RECEIVED, (event, code: string) => {
             console.log('Código de autorização recebido:', code);
+        });
+
+        ipcMain.handle(GITHUB_CHANNELS.OPEN_OAUTH_WINDOW, async () => {
+            try {
+                const code = await authService.login_on_github();
+                return { success: true, code };
+            } catch (error: any) {
+                return { success: false, error: error };
+            }
         });
 
         console.log('Handlers do GitHub registrados');

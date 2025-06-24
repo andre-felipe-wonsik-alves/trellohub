@@ -1,8 +1,8 @@
 import { Octokit } from '@octokit/rest';
 // import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
 import type { github_user, github_auth_token } from '../types/github'; //* o type é maneiro para interfaces
+import { openGithubAuthWindow } from "../windows/github-window.js"
 
-// const axios = require("axios/dist/node/axios.cjs");
 import axios from 'axios';
 
 export interface GithubAuthService_interface {
@@ -11,6 +11,7 @@ export interface GithubAuthService_interface {
     exchange_code_for_token(code: string): Promise<github_auth_token>;
     is_token_valid(token: string): Promise<boolean>;
     revoke_token(token: string): Promise<void>;
+    login_on_github(): Promise<void>;
 }
 
 export class GithubAuthService implements GithubAuthService_interface {
@@ -21,9 +22,9 @@ export class GithubAuthService implements GithubAuthService_interface {
     // private readonly oauth_app: Octokit;
 
     constructor(
-        client_id: string = 'aaa',
-        client_secret: string = 'aaa',
-        redirect_uri: string = 'aaa',
+        client_id: string,
+        client_secret: string,
+        redirect_uri: string,
         scopes: string[] = ['repo', 'user:email']
     ) {
         this.client_id = client_id;
@@ -42,6 +43,15 @@ export class GithubAuthService implements GithubAuthService_interface {
         });
 
         return `${base_url}?${params.toString()}`;
+    }
+
+    async login_on_github(): Promise<void> {
+        try {
+            const url = this.get_oauth_url();
+            await openGithubAuthWindow(url, this.redirect_uri);
+        } catch (error) {
+            throw new Error("error:" + error);
+        }
     }
 
     async exchange_code_for_token(code: string): Promise<github_auth_token> {
