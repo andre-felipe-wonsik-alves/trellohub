@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import { GithubAuthService } from '../../github/github-auth-service.js';
 import { GithubApiService } from '../../github/github-api-service.js';
+import { openGithubAuthWindow } from '../../windows/github-window.js';
 import 'dotenv/config';
 
 const authService = new GithubAuthService(
@@ -18,7 +19,7 @@ const GITHUB_CHANNELS = {
     GET_USER_REPOSITORIES: 'github:get-user-repositories',
     GET_REPOSITORY_DATA: 'github:get-repository-data',
     AUTHORIZATION_CODE_RECEIVED: 'github:authorization-code-received',
-    OPEN_OAUTH_WINDOW: 'github:open-oauth-window'
+    MAKE_LOGIN: 'github:open-oauth-window'
 } as const;
 
 export const githubHandlers = {
@@ -83,12 +84,16 @@ export const githubHandlers = {
             console.log('Código de autorização recebido:', code);
         });
 
-        ipcMain.handle(GITHUB_CHANNELS.OPEN_OAUTH_WINDOW, async () => {
+        ipcMain.handle(GITHUB_CHANNELS.MAKE_LOGIN, async () => {
             try {
-                const code = await authService.login_on_github();
-                return { success: true, code };
-            } catch (error: any) {
-                return { success: false, error: error };
+
+                const _url = authService.get_oauth_url();
+                const _code = await openGithubAuthWindow(_url, process.env.GITHUB_CLIENT_URI!);
+                const _token = await authService.exchange_code_for_token(_code);
+
+                return { success: true, code: _code, token: _token };
+            } catch (_error: any) {
+                return { success: false, error: _error };
             }
         });
 

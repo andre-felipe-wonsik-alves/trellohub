@@ -1,4 +1,3 @@
-import { ipcMain } from 'electron';
 import { githubHandlers } from './handlers/github-handlers.js';
 import { systemHandlers } from './handlers/system-handlers.js';
 

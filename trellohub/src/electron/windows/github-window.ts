@@ -20,6 +20,7 @@ export async function openGithubAuthWindow(oauthUrl: string, redirectUri: string
                 const code = new URL(url).searchParams.get('code');
                 if (code) {
                     resolve(code);
+                    console.log(code);
                     authWindow.close();
                 } else {
                     reject(new Error('Código de autenticação não encontrado.'));

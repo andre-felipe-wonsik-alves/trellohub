@@ -24,7 +24,7 @@ interface ElectronAPI {
     getUserRepositories: (token: string) => Promise<any[]>;
     getRepositoryData: (token: string, owner: string, repo: string) => Promise<any>;
     openExternal: (url: string) => Promise<{ success: boolean }>;
-    openOAuthWindow: () => Promise<any>;
+    make_login: () => Promise<any>;
 
 }
 

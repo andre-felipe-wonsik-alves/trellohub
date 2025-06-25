@@ -4,9 +4,8 @@ import Board from "./components/Board";
 const App: React.FC = () => {
   const [result] = useState(0);
   const handleLogin = async () => {
-    const oauth_url = await window.electronAPI.getOAuthUrl();
-    console.log("OAUTH_URL -> ", oauth_url);
-    await window.electronAPI.openOAuthWindow();
+    const token = await window.electronAPI.make_login();
+    console.log(token);
   };
 
   useEffect(() => {

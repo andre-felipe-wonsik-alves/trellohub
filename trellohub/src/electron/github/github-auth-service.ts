@@ -48,7 +48,8 @@ export class GithubAuthService implements GithubAuthService_interface {
     async login_on_github(): Promise<void> {
         try {
             const url = this.get_oauth_url();
-            await openGithubAuthWindow(url, this.redirect_uri);
+            const res = await openGithubAuthWindow(url, this.redirect_uri);
+            console.log("LOGIN RES: ", res);
         } catch (error) {
             throw new Error("error:" + error);
         }

@@ -9,7 +9,7 @@ const electronAPI = {
   getUserRepositories: (token: string) => ipcRenderer.invoke("github:get-user-repositories", token),
   getRepositoryData: (token: string, owner: string, repo: string) => ipcRenderer.invoke("github:get-repository-data", token, owner, repo),
   openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
-  openOAuthWindow: () => ipcRenderer.invoke("github:open-oauth-window")
+  make_login: () => ipcRenderer.invoke("github:open-oauth-window")
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);

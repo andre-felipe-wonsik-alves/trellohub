@@ -340,7 +340,11 @@ const Board: React.FC = () => {
                   isDragging={false}
                 />
               </div>
-              <ColumnDropZone index={index + 1} isActive={false} onDrop={() => {}} />
+              <ColumnDropZone
+                index={index + 1}
+                isActive={false}
+                onDrop={() => {}}
+              />
             </React.Fragment>
           ))}
         </div>
@@ -355,7 +359,9 @@ const Board: React.FC = () => {
         isOpen={confirmationModal.isOpen}
         message={confirmationModal.message}
         onConfirm={confirmationModal.onConfirm}
-        onCancel={() => setConfirmationModal({ ...confirmationModal, isOpen: false })}
+        onCancel={() =>
+          setConfirmationModal({ ...confirmationModal, isOpen: false })
+        }
       />
 
       <InputModal
@@ -373,21 +379,32 @@ const Board: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Título
+            </label>
             <input
               type="text"
               value={cardModal.title}
-              onChange={(e) => setCardModal((prev) => ({ ...prev, title: e.target.value }))}
+              onChange={(e) =>
+                setCardModal((prev) => ({ ...prev, title: e.target.value }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Digite o título do cartão"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição (opcional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Descrição (opcional)
+            </label>
             <textarea
               value={cardModal.description}
-              onChange={(e) => setCardModal((prev) => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setCardModal((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               rows={3}
               placeholder="Digite a descrição do cartão"
@@ -415,4 +432,3 @@ const Board: React.FC = () => {
 };
 
 export default Board;
-
