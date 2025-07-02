@@ -1,10 +1,9 @@
 import { Octokit } from '@octokit/rest';
 // import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
-import type { github_user, github_auth_token } from '../types/github'; //* o type é maneiro para interfaces
+import type { github_user, github_auth_token } from '../types/github.js'; //* o type é maneiro para interfaces
 
 // const axios = require("axios/dist/node/axios.cjs");
 import axios from 'axios';
-
 export interface GithubAuthService_interface {
     get_oauth_url(): string;
     get_authenticated_user(token: string): Promise<github_user>;

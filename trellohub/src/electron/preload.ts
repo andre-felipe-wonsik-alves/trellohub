@@ -11,7 +11,6 @@ const electronAPI = {
   getUserRepositories: (token: string) => ipcRenderer.invoke("github:get-user-repositories", token),
   getRepositoryData: (token: string, owner: string, repo: string) => ipcRenderer.invoke("github:get-repository-data", token, owner, repo),
   openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
-  getRedisMock: (key: string) => ipcRenderer.invoke("redis:get-mock", key)
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);
