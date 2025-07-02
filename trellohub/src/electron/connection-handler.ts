@@ -8,7 +8,7 @@ interface ConnectionResult {
 
 async function verify_connection(): Promise<ConnectionResult> {
     try {
-        const res = await axios.get("https://drive.google.com/drive/u/12/15");
+        const res = await axios.get("https://google.com");
 
         return {
             status: res.status,
