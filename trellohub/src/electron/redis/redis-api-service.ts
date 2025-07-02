@@ -31,12 +31,12 @@ export class redisService {
         }
     }
 
-    async get_mock(key: string): Promise<string | null> {
+    async get_mock(key: string): Promise<string> {
          try {
             return "GET - "+key;
         } catch (error) {
             console.error(error);
-            return null;
+            return "";
         }
     }
 

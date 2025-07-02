@@ -13,6 +13,7 @@ import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
 
 const Board: React.FC = () => {
+
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
