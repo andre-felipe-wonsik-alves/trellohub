@@ -180,45 +180,44 @@ const Board: React.FC = () => {
   };
 
   const handleColumnDrop = useCallback(
-      (toIndex: number) => {
-        if (!dragState.draggedItem || dragState.draggedItem.type !== "column")
-          return;
-  
-        const fromIndex = dragState.draggedItem.sourceIndex;
-        if (fromIndex !== undefined && fromIndex !== toIndex) {
-          setBoard((prevBoard) =>
-            BoardModel.moveColumn(prevBoard, fromIndex, toIndex)
-          );
-        }
-  
-        setDragState({
-          draggedItem: null,
-          dragOverColumn: null,
-          dragOverIndex: null,
-          dragOutside: false,
-        });
-      },
-      [dragState.draggedItem]
-    );
+    (toIndex: number) => {
+      if (!dragState.draggedItem || dragState.draggedItem.type !== "column")
+        return;
 
-    const handleColumnDragStart = 
-        (columnId: string, index: number) => {
-          setDragState({
-            draggedItem: { type: "column", id: columnId, sourceIndex: index },
-            dragOverColumn: null,
-            dragOverIndex: null,
-            dragOutside: false,
-          });
-        };
-    
-      const handleColumnDragEnd = () => {
-        setDragState({
-          draggedItem: null,
-          dragOverColumn: null,
-          dragOverIndex: null,
-          dragOutside: false,
-        });
-      };
+      const fromIndex = dragState.draggedItem.sourceIndex;
+      if (fromIndex !== undefined && fromIndex !== toIndex) {
+        setBoard((prevBoard) =>
+          BoardModel.moveColumn(prevBoard, fromIndex, toIndex)
+        );
+      }
+
+      setDragState({
+        draggedItem: null,
+        dragOverColumn: null,
+        dragOverIndex: null,
+        dragOutside: false,
+      });
+    },
+    [dragState.draggedItem]
+  );
+
+  const handleColumnDragStart = (columnId: string, index: number) => {
+    setDragState({
+      draggedItem: { type: "column", id: columnId, sourceIndex: index },
+      dragOverColumn: null,
+      dragOverIndex: null,
+      dragOutside: false,
+    });
+  };
+
+  const handleColumnDragEnd = () => {
+    setDragState({
+      draggedItem: null,
+      dragOverColumn: null,
+      dragOverIndex: null,
+      dragOutside: false,
+    });
+  };
 
   const handleDeleteColumn = (columnId: string) => {
     setConfirmationModal({
@@ -230,7 +229,6 @@ const Board: React.FC = () => {
       },
     });
   };
-
 
   // Drag and drop
   const handleCardDragStart = useCallback(
@@ -337,29 +335,28 @@ const Board: React.FC = () => {
     [dragState.draggedItem]
   );
 
- // Trash drop handler
-   const handleTrashDrop = useCallback(() => {
-     if (!dragState.draggedItem) return;
- 
-     if (dragState.draggedItem.type === "card") {
-       setBoard((prevBoard) =>
-        BoardModel.removeCard(prevBoard, dragState.draggedItem!.id)
-       );
-     } else if (dragState.draggedItem.type === "column") {
-       setBoard((prevBoard) =>
-         BoardModel.removeColumn(prevBoard, dragState.draggedItem!.id)
-       );
-     }
- 
-     setDragState({
-       draggedItem: null,
-       dragOverColumn: null,
-       dragOverIndex: null,
-       dragOutside: false,
-     });
-   }, [dragState.draggedItem]);
+  // Trash drop handler
+  const handleTrashDrop = useCallback(() => {
+    if (!dragState.draggedItem) return;
 
-  
+    if (dragState.draggedItem.type === "card") {
+      setBoard((prevBoard) =>
+        BoardModel.removeCard(prevBoard, dragState.draggedItem!.id)
+      );
+    } else if (dragState.draggedItem.type === "column") {
+      setBoard((prevBoard) =>
+        BoardModel.removeColumn(prevBoard, dragState.draggedItem!.id)
+      );
+    }
+
+    setDragState({
+      draggedItem: null,
+      dragOverColumn: null,
+      dragOverIndex: null,
+      dragOutside: false,
+    });
+  }, [dragState.draggedItem]);
+
   // Efeitos
   React.useEffect(() => {
     if (dragState.draggedItem) {
@@ -370,24 +367,53 @@ const Board: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
-      <div className="max-w-full" ref={boardRef}>
+      <div className="w-screen px-4" ref={boardRef}>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-white">Meu Kanban Board</h1>
           <button
             onClick={handleAddColumn}
-            className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+            className="fixed top-6 right-6 bg-black text-white px-4 py-2 rounded-lg flex items-center shadow-lg hover:bg-gray-800 z-50"
           >
             <Plus size={20} className="mr-2" />
             Adicionar Coluna
           </button>
         </div>
 
-        <div className="flex space-x-6 overflow-x-auto pb-4">
-          <ColumnDropZone index={0} isActive={dragState.draggedItem?.type === "column" &&
-              dragState.dragOverIndex === 0} onDrop={handleColumnDrop} />
+        <div className="flex gap-6 pb-4 overflow-x-auto whitespace-nowrap">
+          <ColumnDropZone
+            index={0}
+            isActive={
+              dragState.draggedItem?.type === "column" &&
+              dragState.dragOverIndex === 0
+            }
+            onDrop={(dropIndex) => {
+              if (
+                dragState.draggedItem?.type === "column" &&
+                typeof dragState.draggedItem.sourceIndex === "number"
+              ) {
+                setBoard((prev) =>
+                  BoardModel.moveColumn(
+                    prev,
+                    dragState.draggedItem!.sourceIndex!,
+                    dropIndex
+                  )
+                );
+                handleColumnDragEnd();
+              }
+            }}
+            onDragOver={(hoverIndex) => {
+              if (dragState.draggedItem?.type === "column") {
+                setDragState((prev) => ({
+                  ...prev,
+                  dragOverIndex: hoverIndex,
+                }));
+              }
+            }}
+          />
+
           {board.columns.map((column, index) => (
             <React.Fragment key={column.id}>
-              <div data-column-id={column.id}>
+              <div className="w-[320px] shrink-0" data-column-id={column.id}>
                 <ColumnComponent
                   column={column}
                   index={index}
@@ -405,21 +431,36 @@ const Board: React.FC = () => {
                   isDragging={dragState.draggedItem?.id === column.id}
                 />
               </div>
-              <ColumnDropZone index={index} 
-              isActive={
-                dragState.draggedItem?.type === "column" &&
-                  dragState.dragOverIndex === index} 
-                  onDrop={(dropIndex) => {
-                    if (
-                      dragState.draggedItem?.type === "column" &&
-                      typeof dragState.draggedItem.sourceIndex === "number"
-                    ) {
-                      setBoard((prev) =>
-                        BoardModel.moveColumn(prev, dragState.draggedItem?.sourceIndex!, dropIndex)
-                      );
-                      handleColumnDragEnd();
-                    }
-                  }} />
+              <ColumnDropZone
+                index={index + 1}
+                isActive={
+                  dragState.draggedItem?.type === "column" &&
+                  dragState.dragOverIndex === index + 1
+                }
+                onDrop={(dropIndex) => {
+                  if (
+                    dragState.draggedItem?.type === "column" &&
+                    typeof dragState.draggedItem.sourceIndex === "number"
+                  ) {
+                    setBoard((prev) =>
+                      BoardModel.moveColumn(
+                        prev,
+                        dragState.draggedItem!.sourceIndex!,
+                        dropIndex
+                      )
+                    );
+                    handleColumnDragEnd();
+                  }
+                }}
+                onDragOver={(hoverIndex) => {
+                  if (dragState.draggedItem?.type === "column") {
+                    setDragState((prev) => ({
+                      ...prev,
+                      dragOverIndex: hoverIndex,
+                    }));
+                  }
+                }}
+              />
             </React.Fragment>
           ))}
         </div>
@@ -434,7 +475,9 @@ const Board: React.FC = () => {
         isOpen={confirmationModal.isOpen}
         message={confirmationModal.message}
         onConfirm={confirmationModal.onConfirm}
-        onCancel={() => setConfirmationModal({ ...confirmationModal, isOpen: false })}
+        onCancel={() =>
+          setConfirmationModal({ ...confirmationModal, isOpen: false })
+        }
       />
 
       <InputModal
@@ -452,21 +495,32 @@ const Board: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Título
+            </label>
             <input
               type="text"
               value={cardModal.title}
-              onChange={(e) => setCardModal((prev) => ({ ...prev, title: e.target.value }))}
+              onChange={(e) =>
+                setCardModal((prev) => ({ ...prev, title: e.target.value }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Digite o título do cartão"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição (opcional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Descrição (opcional)
+            </label>
             <textarea
               value={cardModal.description}
-              onChange={(e) => setCardModal((prev) => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setCardModal((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               rows={3}
               placeholder="Digite a descrição do cartão"
@@ -494,4 +548,3 @@ const Board: React.FC = () => {
 };
 
 export default Board;
-
