@@ -15,7 +15,7 @@ async function verify_connection(): Promise<ConnectionResult> {
             message: "Connection reestablished"
         }
     }
-    catch (error) {
+    catch (error: any) {
         let status = 500;
         let message = "Unknown error";
 

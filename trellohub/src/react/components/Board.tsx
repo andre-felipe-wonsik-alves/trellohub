@@ -369,7 +369,7 @@ const Board: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
       <div className="w-screen px-4" ref={boardRef}>
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-white">Meu Kanban Board</h1>
+          <h1 className="text-3xl font-bold text-white">TrelloHub</h1>
           <button
             onClick={handleAddColumn}
             className="fixed top-6 right-6 bg-black text-white px-4 py-2 rounded-lg flex items-center shadow-lg hover:bg-gray-800 z-50"
