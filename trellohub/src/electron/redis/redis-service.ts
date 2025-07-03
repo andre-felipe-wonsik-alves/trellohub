@@ -34,7 +34,7 @@ export class redisService {
             return;
         }
         try {
-            await this.client.quit(); // Use quit to gracefully close the connection
+            await this.client.destroy(); // Use quit to gracefully close the connection
             this.isConnected = false;
             console.log('Redis client disconnected successfully.');
         } catch (error) {
