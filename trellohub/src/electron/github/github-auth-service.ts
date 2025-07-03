@@ -1,8 +1,5 @@
 import { Octokit } from '@octokit/rest';
-// import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
 import type { github_user, github_auth_token } from '../types/github'; //* o type é maneiro para interfaces
-
-// const axios = require("axios/dist/node/axios.cjs");
 import axios from 'axios';
 
 export interface GithubAuthService_interface {
@@ -18,7 +15,6 @@ export class GithubAuthService implements GithubAuthService_interface {
     private readonly client_secret: string;
     private readonly redirect_uri: string;
     private readonly scopes: string[];
-    // private readonly oauth_app: Octokit;
 
     constructor(
         client_id: string = 'aaa',
