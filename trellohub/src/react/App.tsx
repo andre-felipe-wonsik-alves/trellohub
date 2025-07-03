@@ -3,8 +3,6 @@ import Board from "./components/Board";
 
 const App: React.FC = () => {
   const [connectStatus, setConnectStatus] = useState('Disconnected');
-
-
   return (
     <div className="min-h-screen">
       <Board />
