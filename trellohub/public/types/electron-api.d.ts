@@ -16,8 +16,6 @@ interface SystemAPI {
 }
 
 interface ElectronAPI {
-    github: GitHubAPI;
-    system: SystemAPI;
     getOAuthUrl: () => Promise<string>;
     exchangeCodeForToken: (code: string) => Promise<string>;
     getAuthenticatedUser: (token: string) => Promise<any>;
@@ -26,6 +24,8 @@ interface ElectronAPI {
     getUserRepositories: (token: string) => Promise<any[]>;
     getRepositoryData: (token: string, owner: string, repo: string) => Promise<any>;
     openExternal: (url: string) => Promise<{ success: boolean }>;
+    make_login: () => Promise<any>;
+
 }
 
 declare global {
