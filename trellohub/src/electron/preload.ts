@@ -10,6 +10,7 @@ const electronAPI = {
   revokeToken: (token: string) => ipcRenderer.invoke("github:revoke-token", token),
   getUserRepositories: (token: string) => ipcRenderer.invoke("github:get-user-repositories", token),
   getRepositoryData: (token: string, owner: string, repo: string) => ipcRenderer.invoke("github:get-repository-data", token, owner, repo),
+  getMock: (key: string) => ipcRenderer.invoke("redis:get-mock", key),
   openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
 };
 
