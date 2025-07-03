@@ -1,17 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Board from "./components/Board";
 
 const App: React.FC = () => {
-  const [result] = useState(0);
-  const handleLogin = async () => {
-    const token = await window.electronAPI.make_login();
-    console.log(token);
-  };
-
-  useEffect(() => {
-    handleLogin();
-  });
-
+  const [connectStatus, setConnectStatus] = useState('Disconnected');
   return (
     <div className="min-h-screen">
       <Board />
