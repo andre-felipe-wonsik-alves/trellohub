@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import Button from "./ui/button";
 
 interface InputModalProps {
   isOpen: boolean;
@@ -42,19 +43,19 @@ const InputModal: React.FC<InputModalProps> = ({
           />
         </div>
         <div className="flex justify-end space-x-2">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
+        <Button
             onClick={() => onConfirm(value)}
             disabled={!value.trim()}
             className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors"
           >
             Confirmar
-          </button>
+          </Button>
+          <Button
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            Cancelar
+          </Button>
         </div>
       </div>
     </div>

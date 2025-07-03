@@ -3,7 +3,7 @@ import { Edit2, Trash2, GripVertical, Plus } from "lucide-react";
 import type { Column, Card, DragState } from "../types";
 import CardComponent from "./CardComponent";
 import DropZone from "./DropZone";
-
+import Button from "./ui/button";
 
 interface ColumnComponentProps {
   column: Column;
@@ -142,13 +142,13 @@ const ColumnComponent: React.FC<ColumnComponentProps> = ({
         ))}
       </div>
 
-      <button
+      <Button
         onClick={() => onAddCard(column.id)}
         className="w-full mt-3 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
       >
         <Plus size={16} className="mr-1" />
         Adicionar cartão
-      </button>
+      </Button>
     </div>
   );
 };

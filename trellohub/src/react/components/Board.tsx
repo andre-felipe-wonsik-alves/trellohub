@@ -10,6 +10,7 @@ import ConfirmationModal from "./ConfirmationModal";
 import { CardModel } from "../models/CardModel";
 import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
+import Button from "./ui/button";
 
 const Board: React.FC = () => {
   const [board, setBoard] = useState<BoardState>({
@@ -370,13 +371,13 @@ const Board: React.FC = () => {
       <div className="w-screen px-4" ref={boardRef}>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-white">TrelloHub</h1>
-          <button
+          <Button
             onClick={handleAddColumn}
-            className="fixed top-6 right-6 bg-black text-white px-4 py-2 rounded-lg flex items-center shadow-lg hover:bg-gray-800 z-50"
+            className="fixed top-6 right-6 z-50 shadow-lg"
           >
             <Plus size={20} className="mr-2" />
             Adicionar Coluna
-          </button>
+          </Button>
         </div>
 
         <div className="flex gap-6 pb-4 overflow-x-auto whitespace-nowrap">
@@ -527,19 +528,19 @@ const Board: React.FC = () => {
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <button
-              onClick={() => setCardModal({ ...cardModal, isOpen: false })}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
+          <Button
               onClick={handleSubmitCardModal}
               disabled={!cardModal.title.trim()}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors"
             >
               {cardModal.mode === "edit" ? "Salvar" : "Criar"}
-            </button>
+            </Button>
+            <Button
+              onClick={() => setCardModal({ ...cardModal, isOpen: false })}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancelar
+            </Button>
           </div>
         </div>
       </Modal>
