@@ -1,4 +1,5 @@
-import type { BoardState, Column } from "../types";
+import type { BoardState, Column, Card } from "../types";
+import { CardModel } from "./CardModel";
 
 export class BoardModel {
   static addColumn(
@@ -51,36 +52,34 @@ export class BoardModel {
     toColumnId: string,
     toIndex: number
   ): BoardState {
-    const newColumns = [...board.columns];
+    const sourceColumn = board.columns.find((col) => col.id === fromColumnId);
+    const targetColumn = board.columns.find((col) => col.id === toColumnId);
 
-    const sourceColIndex = newColumns.findIndex(
-      (col) => col.id === fromColumnId
-    );
-    const destColIndex = newColumns.findIndex((col) => col.id === toColumnId);
+    if (!sourceColumn || !targetColumn) return board;
 
-    if (sourceColIndex === -1 || destColIndex === -1) return board;
+    const cardToMove = sourceColumn.cards.find((c) => c.id === cardId);
+    if (!cardToMove) return board;
 
-    const sourceColumn = { ...newColumns[sourceColIndex] };
-    const destColumn = { ...newColumns[destColIndex] };
+    const updatedCard = CardModel.setStatus(cardToMove, BoardModel.mapColumnTitleToStatus(targetColumn.title));
 
-    const cardIndex = sourceColumn.cards.findIndex(
-      (card) => card.id === cardId
-    );
-    if (cardIndex === -1) return board;
+    const updatedSource: Column = {
+      ...sourceColumn,
+      cards: sourceColumn.cards.filter((c) => c.id !== cardId),
+    };
 
-    const [card] = sourceColumn.cards.splice(cardIndex, 1);
+    const updatedTarget: Column = {
+      ...targetColumn,
+      cards: [...targetColumn.cards.slice(0, toIndex), updatedCard, ...targetColumn.cards.slice(toIndex)],
+    };
 
-    if (fromColumnId === toColumnId) {
-      const adjustedIndex = toIndex > cardIndex ? toIndex - 1 : toIndex;
-      destColumn.cards.splice(adjustedIndex, 0, card);
-    } else {
-      destColumn.cards.splice(toIndex, 0, card);
-    }
-
-    newColumns[sourceColIndex] = sourceColumn;
-    newColumns[destColIndex] = destColumn;
-
-    return { columns: newColumns };
+    return {
+      ...board,
+      columns: board.columns.map((col) => {
+        if (col.id === updatedSource.id) return updatedSource;
+        if (col.id === updatedTarget.id) return updatedTarget;
+        return col;
+      }),
+    };
   }
 
   static removeCard(board: BoardState, cardId: string): BoardState {
@@ -90,5 +89,13 @@ export class BoardModel {
         cards: column.cards.filter((card) => card.id !== cardId),
       })),
     };
+  }
+
+  private static mapColumnTitleToStatus(title: string): Card["status"] {
+    const normalized = title.trim().toLowerCase();
+    if (normalized.includes("fazer")) return "todo";
+    if (normalized.includes("progresso")) return "in-progress";
+    if (normalized.includes("conclu")) return "done";
+    return "todo";
   }
 }

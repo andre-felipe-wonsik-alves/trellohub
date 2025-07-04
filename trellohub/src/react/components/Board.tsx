@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 import type { BoardState, Card, Column, DragState } from "../types";
 import ColumnComponent from "./ColumnComponent";
@@ -12,6 +12,13 @@ import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 
+/*const defaultStatuses: { title: string; status: Card["status"] }[] = [
+  { title: "A Fazer", status: "todo" },
+  { title: "Em Progresso", status: "in-progress" },
+  { title: "Concluído", status: "done" },
+];*/
+
+
 const Board: React.FC = () => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
@@ -23,11 +30,13 @@ const Board: React.FC = () => {
             id: "card1",
             title: "Sla",
             description: "Nao sei",
+            status: "todo",
           },
           {
             id: "card2",
             title: "Bora Bill",
             description: "Lá ele",
+            status: "todo",
           },
         ],
       },
@@ -39,6 +48,7 @@ const Board: React.FC = () => {
             id: "card3",
             title: "Desenvolver projeto",
             description: "TrelloHub",
+            status: "in-progress",
           },
         ],
       },
@@ -65,8 +75,6 @@ const Board: React.FC = () => {
     message: "",
     onConfirm: () => {},
   });
-
-  const [formData, setFormData] = useState({ title: "", description: "" });
 
   // Um tanto diferente do original!
   const [inputModal, setInputModal] = useState({
@@ -179,28 +187,6 @@ const Board: React.FC = () => {
       },
     });
   };
-
-  const handleColumnDrop = useCallback(
-    (toIndex: number) => {
-      if (!dragState.draggedItem || dragState.draggedItem.type !== "column")
-        return;
-
-      const fromIndex = dragState.draggedItem.sourceIndex;
-      if (fromIndex !== undefined && fromIndex !== toIndex) {
-        setBoard((prevBoard) =>
-          BoardModel.moveColumn(prevBoard, fromIndex, toIndex)
-        );
-      }
-
-      setDragState({
-        draggedItem: null,
-        dragOverColumn: null,
-        dragOverIndex: null,
-        dragOutside: false,
-      });
-    },
-    [dragState.draggedItem]
-  );
 
   const handleColumnDragStart = (columnId: string, index: number) => {
     setDragState({
