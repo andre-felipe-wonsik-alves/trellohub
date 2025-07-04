@@ -1,8 +1,10 @@
+import { generateKeySync } from 'node:crypto';
 import { createClient, RedisClientType } from 'redis';
 
-export class redisService {
+class RedisService {
     private client: RedisClientType; // Use specific RedisClientType for better typing
     private isConnected: boolean = false; // Track connection status
+    private keys: any = [];
 
     constructor() {
         // Initialize client here, but don't connect immediately
@@ -11,6 +13,14 @@ export class redisService {
             console.error('Redis Client Error:', err);
             this.isConnected = false; // Mark as disconnected on error
         });
+    }
+
+    public add_key(key: string){
+        this.keys.push(key);
+    }
+
+    public get_keys(){
+        return this.keys;
     }
 
     public async connect(): Promise<void> {
@@ -34,7 +44,7 @@ export class redisService {
             return;
         }
         try {
-            await this.client.quit(); // Use quit to gracefully close the connection
+            await this.client.destroy(); // Use quit to gracefully close the connection
             this.isConnected = false;
             console.log('Redis client disconnected successfully.');
         } catch (error) {
@@ -68,7 +78,7 @@ export class redisService {
             }
             return value;
         } catch (error) {
-            console.error(`Error getting key '${key}':`, error);
+            console.error(`Error getting key '${key}':`, error);  
             return null;
         }
     }
@@ -98,3 +108,5 @@ export class redisService {
         return `GET - ${key} (Mocked)`;
     }
 }
+
+export const redisService = new RedisService();
