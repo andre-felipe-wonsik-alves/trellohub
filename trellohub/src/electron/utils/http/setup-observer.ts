@@ -1,2 +1,2 @@
 import "../connection-handler.js";
-import "../../sync/sync-service.js";
+import "../../services/sync/sync-service.js";

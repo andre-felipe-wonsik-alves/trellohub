@@ -7,9 +7,9 @@ import type {
     github_label,
     repository_data,
     github_api_error
-} from '../types/github';
-import { observer } from "../utils/http/http-observer.js";
-import "../utils/http/setup-observer.js";
+} from '../../types/github.js';
+import { observer } from "../../utils/http/http-observer.js";
+import "../../utils/http/setup-observer.js";
 
 export interface GithubApiService_interface {
     get_user_repositories(token: string): Promise<github_repository[]>;

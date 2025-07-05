@@ -1,5 +1,5 @@
 import { redisService } from "../redis/redis-service.js";
-import { observer } from "../utils/http/http-observer.js"
+import { observer } from "../../utils/http/http-observer.js"
 
 interface ISyncService {
     handle_syncronization(): Promise<any>;

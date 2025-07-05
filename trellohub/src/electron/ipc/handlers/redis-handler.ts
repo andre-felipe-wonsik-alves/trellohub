@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 // Assuming your updated RedisService is in this path
-import { redisService } from '../../redis/redis-service.js';
+import { redisService } from '../../services/redis/redis-service.js';
 
 // Instantiate the RedisService.
 // It's crucial to connect to Redis when your Electron app starts up

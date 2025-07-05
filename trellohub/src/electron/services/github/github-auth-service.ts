@@ -1,8 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
-import type { github_user, github_auth_token } from '../types/github';
-import { openGithubAuthWindow } from "../windows/github-window.js";
-import { observer } from "../utils/http/http-observer.js";
-import "../utils/http/setup-observer.js";
+import type { github_user, github_auth_token } from '../../types/github.js';
+import { openGithubAuthWindow } from "../../windows/github-window.js";
+import { observer } from "../../utils/http/http-observer.js";
+import "../../utils/http/setup-observer.js";
 
 export interface GithubAuthService_interface {
     get_oauth_url(): string;
