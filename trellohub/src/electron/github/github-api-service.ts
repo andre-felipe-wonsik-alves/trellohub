@@ -38,6 +38,74 @@ export class GithubApiService implements GithubApiService_interface {
       timeout: 30000,
     });
   }
+  async create_issue(
+    token: string,
+    owner: string,
+    repo: string,
+    title: string,
+    body: string = "",
+    labels: string[] = []
+  ): Promise<github_issue> {
+    const url = `${this.base_url}/repos/${owner}/${repo}/issues`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": this.user_agent,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title, body, labels }),
+    });
+
+    if (!response.ok) {
+      const error_data = await response.json();
+    }
+
+    return await response.json();
+  }
+
+  async update_issue(
+    token: string,
+    owner: string,
+    repo: string,
+    issue_number: number,
+    fields: Partial<{
+      title: string;
+      body: string;
+      state: "open" | "closed";
+      labels: string[];
+    }>
+  ): Promise<github_issue> {
+    const url = `${this.base_url}/repos/${owner}/${repo}/issues/${issue_number}`;
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": this.user_agent,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(fields),
+    });
+
+    if (!response.ok) {
+      const error_data = await response.json();
+    }
+
+    return await response.json();
+  }
+
+  async close_issue(
+    token: string,
+    owner: string,
+    repo: string,
+    issue_number: number
+  ): Promise<github_issue> {
+    return this.update_issue(token, owner, repo, issue_number, {
+      state: "closed",
+    });
+  }
 
   async get_user_repositories(token: string): Promise<github_repository[]> {
     try {
