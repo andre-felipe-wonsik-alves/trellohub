@@ -1,10 +1,8 @@
-import { generateKeySync } from 'node:crypto';
 import { createClient, RedisClientType } from 'redis';
 
 class RedisService {
     private client: RedisClientType; // Use specific RedisClientType for better typing
     private isConnected: boolean = false; // Track connection status
-    private keys: any = [];
 
     constructor() {
         // Initialize client here, but don't connect immediately
@@ -15,12 +13,18 @@ class RedisService {
         });
     }
 
-    public add_key(key: string){
-        this.keys.push(key);
-    }
-
-    public get_keys(){
-        return this.keys;
+    public async get_keys(): Promise<string[]> {
+        try {
+            let keys: string[] = [];
+            for await(const key of this.client.scanIterator()){
+                console.log(key);
+            }
+            console.log('Chaves Iteradas');
+            return keys;
+        } catch (error) {
+            console.error(`Falha ao buscar todas as chaves: ${error}`);
+            throw new Error('Falha ao buscar todas as chaves');
+        }
     }
 
     public async connect(): Promise<void> {
@@ -110,3 +114,4 @@ class RedisService {
 }
 
 export const redisService = new RedisService();
+redisService.connect();
