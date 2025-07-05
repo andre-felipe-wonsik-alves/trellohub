@@ -1,3 +1,4 @@
+import axios, { AxiosInstance } from 'axios';
 import type {
   github_repository,
   github_issue,
@@ -5,8 +6,9 @@ import type {
   github_commit,
   github_label,
   repository_data,
-  github_api_error,
-} from "../types/github";
+  github_api_error
+} from '../types/github';
+import { observer } from "../utils/http/http-observer.js";
 
 export interface GithubApiService_interface {
   get_user_repositories(token: string): Promise<github_repository[]>;
@@ -18,39 +20,71 @@ export interface GithubApiService_interface {
 }
 
 export class GithubApiService implements GithubApiService_interface {
-  private readonly base_url = "https://api.github.com";
-  private readonly user_agent = "TrelloHub";
+  private readonly base_url: string;
+  private readonly user_agent: string;
+  private readonly axios_instance: AxiosInstance;
 
-  async get_user_repositories(token: string): Promise<github_repository[]> {
-    const repositories: github_repository[] = [];
-    let page = 1;
-    const per_page = 100;
+  constructor() {
+    this.base_url = 'https://api.github.com';
+    this.user_agent = 'TrelloHub';
 
-    while (true) {
-      const url = `${this.base_url}/user/repos?page=${page}&per_page=${per_page}&sort=updated&type=all`;
-      const response = await this.make_authenticated_request(url, token);
-
-      const data = await response.json();
-
-      if (data.length === 0) break;
-
-      repositories.push(...data);
-
-      if (data.length < per_page) break;
-
-      page++;
-    }
-
-    return repositories;
+    this.axios_instance = axios.create({
+      baseURL: this.base_url,
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': this.user_agent,
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000,
+    });
   }
 
-  async get_repository_data(
-    token: string,
-    owner: string,
-    repo: string
-  ): Promise<repository_data> {
-    const [repository, issues, pull_requests, commits, labels] =
-      await Promise.all([
+  async get_user_repositories(token: string): Promise<github_repository[]> {
+    try {
+      const repositories: github_repository[] = [];
+      let page = 1;
+      const per_page = 100;
+
+      while (true) {
+        const response = await this.axios_instance.get<github_repository[]>('/user/repos', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          params: {
+            page,
+            per_page,
+            sort: 'updated',
+            type: 'all',
+          },
+        });
+
+        const data = response.data;
+
+        if (data.length === 0) break;
+
+        repositories.push(...data);
+
+        if (data.length < per_page) break;
+
+        page++;
+      }
+
+      return repositories;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get user repositories: ${error.message}`);
+    }
+  }
+
+  async get_repository_data(token: string, owner: string, repo: string): Promise<repository_data> {
+    try {
+      const [
+        repository,
+        issues,
+        pull_requests,
+        commits,
+        labels,
+      ] = await Promise.all([
         this.get_repository(token, owner, repo),
         this.get_repository_issues(token, owner, repo),
         this.get_repository_pull_requests(token, owner, repo),
@@ -58,196 +92,152 @@ export class GithubApiService implements GithubApiService_interface {
         this.get_repository_labels(token, owner, repo),
       ]);
 
-    return {
-      repository,
-      issues,
-      pull_requests,
-      commits,
-      labels,
-    };
-  }
-
-  private async get_repository(
-    token: string,
-    owner: string,
-    repo: string
-  ): Promise<github_repository> {
-    const url = `${this.base_url}/repos/${owner}/${repo}`;
-    const response = await this.make_authenticated_request(url, token);
-    return await response.json();
-  }
-
-  private async get_repository_issues(
-    token: string,
-    owner: string,
-    repo: string
-  ): Promise<github_issue[]> {
-    const issues: github_issue[] = [];
-    let page = 1;
-    const per_page = 100;
-
-    while (true) {
-      const url = `${this.base_url}/repos/${owner}/${repo}/issues?page=${page}&per_page=${per_page}&state=all`;
-      const response = await this.make_authenticated_request(url, token);
-
-      const data = await response.json();
-
-      if (data.length === 0) break;
-
-      const actual_issues = data.filter((issue: any) => !issue.pull_request);
-      issues.push(...actual_issues);
-
-      if (data.length < per_page) break;
-
-      page++;
+      return {
+        repository,
+        issues,
+        pull_requests,
+        commits,
+        labels,
+      };
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get repository data: ${error.message}`);
     }
-
-    return issues;
   }
 
-  async create_issue(
-    token: string,
-    owner: string,
-    repo: string,
-    title: string,
-    body: string = "",
-    labels: string[] = []
-  ): Promise<github_issue> {
-    const url = `${this.base_url}/repos/${owner}/${repo}/issues`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": this.user_agent,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ title, body, labels }),
-    });
+  private async get_repository(token: string, owner: string, repo: string): Promise<github_repository> {
+    try {
+      const response = await this.axios_instance.get<github_repository>(`/repos/${owner}/${repo}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      const error_data = await response.json();
-      throw this.create_api_error(error_data, response.status);
+      return response.data;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get repository: ${error.message}`);
     }
-
-    return await response.json();
   }
 
-  async update_issue(
-    token: string,
-    owner: string,
-    repo: string,
-    issue_number: number,
-    fields: Partial<{
-      title: string;
-      body: string;
-      state: "open" | "closed";
-      labels: string[];
-    }>
-  ): Promise<github_issue> {
-    const url = `${this.base_url}/repos/${owner}/${repo}/issues/${issue_number}`;
-    const response = await fetch(url, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": this.user_agent,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(fields),
-    });
+  private async get_repository_issues(token: string, owner: string, repo: string): Promise<github_issue[]> {
+    try {
+      const issues: github_issue[] = [];
+      let page = 1;
+      const per_page = 100;
 
-    if (!response.ok) {
-      const error_data = await response.json();
-      throw this.create_api_error(error_data, response.status);
+      while (true) {
+        const response = await this.axios_instance.get<github_issue[]>(`/repos/${owner}/${repo}/issues`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          params: {
+            page,
+            per_page,
+            state: 'all',
+          },
+        });
+
+        const data = response.data;
+
+        if (data.length === 0) break;
+
+        const actual_issues = data.filter((issue: any) => !issue.pull_request);
+        issues.push(...actual_issues);
+
+        if (data.length < per_page) break;
+
+        page++;
+      }
+
+      return issues;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get repository issues: ${error.message}`);
     }
-
-    return await response.json();
   }
 
-  async close_issue(
-    token: string,
-    owner: string,
-    repo: string,
-    issue_number: number
-  ): Promise<github_issue> {
-    return this.update_issue(token, owner, repo, issue_number, {
-      state: "closed",
-    });
-  }
+  private async get_repository_pull_requests(token: string, owner: string, repo: string): Promise<github_pull_request[]> {
+    try {
+      const pull_requests: github_pull_request[] = [];
+      let page = 1;
+      const per_page = 100;
 
-  private async get_repository_pull_requests(
-    token: string,
-    owner: string,
-    repo: string
-  ): Promise<github_pull_request[]> {
-    const pull_requests: github_pull_request[] = [];
-    let page = 1;
-    const per_page = 100;
+      while (true) {
+        const response = await this.axios_instance.get<github_pull_request[]>(`/repos/${owner}/${repo}/pulls`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          params: {
+            page,
+            per_page,
+            state: 'all',
+          },
+        });
 
-    while (true) {
-      const url = `${this.base_url}/repos/${owner}/${repo}/pulls?page=${page}&per_page=${per_page}&state=all`;
-      const response = await this.make_authenticated_request(url, token);
+        const data = response.data;
 
-      const data = await response.json();
+        if (data.length === 0) break;
 
-      if (data.length === 0) break;
+        pull_requests.push(...data);
 
-      pull_requests.push(...data);
+        if (data.length < per_page) break;
 
-      if (data.length < per_page) break;
+        page++;
+      }
 
-      page++;
+      return pull_requests;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get repository pull requests: ${error.message}`);
     }
-
-    return pull_requests;
   }
 
-  private async get_repository_commits(
-    token: string,
-    owner: string,
-    repo: string
-  ): Promise<github_commit[]> {
-    const url = `${this.base_url}/repos/${owner}/${repo}/commits?per_page=50`;
-    const response = await this.make_authenticated_request(url, token);
-    return await response.json();
-  }
+  private async get_repository_commits(token: string, owner: string, repo: string): Promise<github_commit[]> {
+    try {
+      const response = await this.axios_instance.get<github_commit[]>(`/repos/${owner}/${repo}/commits`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        params: {
+          per_page: 50,
+        },
+      });
 
-  private async get_repository_labels(
-    token: string,
-    owner: string,
-    repo: string
-  ): Promise<github_label[]> {
-    const url = `${this.base_url}/repos/${owner}/${repo}/labels`;
-    const response = await this.make_authenticated_request(url, token);
-    return await response.json();
-  }
-
-  private async make_authenticated_request(
-    url: string,
-    token: string
-  ): Promise<Response> {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": this.user_agent,
-      },
-    });
-
-    if (!response.ok) {
-      const error_data = await response.json();
-      throw this.create_api_error(error_data, response.status);
+      return response.data;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get repository commits: ${error.message}`);
     }
-
-    return response;
   }
 
-  private create_api_error(error_data: any, status: number): github_api_error {
-    return {
-      message: error_data.message || "Unknown API error",
-      status: status,
-      documentation_url: error_data.documentation_url,
-    };
+  private async get_repository_labels(token: string, owner: string, repo: string): Promise<github_label[]> {
+    try {
+      const response = await this.axios_instance.get<github_label[]>(`/repos/${owner}/${repo}/labels`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get repository labels: ${error.message}`);
+    }
+  }
+
+  async get_repository_rate_limit(token: string): Promise<any> {
+    try {
+      const response = await this.axios_instance.get('/rate_limit', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get rate limit: ${error.message}`);
+    }
   }
 }
