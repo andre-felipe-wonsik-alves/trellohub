@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import type { github_user, github_auth_token } from '../types/github';
 import { openGithubAuthWindow } from "../windows/github-window.js";
 import { observer } from "../utils/http/http-observer.js";
+import "../utils/http/setup-observer.js";
 
 export interface GithubAuthService_interface {
     get_oauth_url(): string;
@@ -89,7 +90,7 @@ export class GithubAuthService implements GithubAuthService_interface {
                 scope: data.scope || this.scopes.join(' '),
             };
         } catch (error) {
-            observer.notify(error);
+            observer.notify({ type: "offline", error });
             throw new Error("Erro no exchange_code_for_token:\n " + error);
         }
     }
@@ -104,7 +105,7 @@ export class GithubAuthService implements GithubAuthService_interface {
 
             return response.data;
         } catch (error: any) {
-            observer.notify(error);
+            observer.notify({ type: "offline", error });
             throw new Error(`Failed to get authenticated user: ${error.message}`);
         }
     }
@@ -121,7 +122,7 @@ export class GithubAuthService implements GithubAuthService_interface {
     async revoke_token(token: string): Promise<void> {
         try {
             const auth_string = Buffer.from(`${this.client_id}:${this.client_secret}`).toString('base64');
-            
+
             const response = await axios.delete(
                 `https://api.github.com/applications/${this.client_id}/token`,
                 {
@@ -138,7 +139,7 @@ export class GithubAuthService implements GithubAuthService_interface {
 
             console.log("Token revogado!\n", response.status);
         } catch (error: any) {
-            observer.notify(error);
+            observer.notify({ type: "offline", error });
             if (error.name === 'TypeError') {
                 throw new Error(`Failed to revoke token: ${error.message}`);
             }
@@ -171,7 +172,7 @@ export class GithubAuthService implements GithubAuthService_interface {
                 accepted_scopes: String(headers['x-accepted-oauth-scopes'] || '').split(',').map(scope => scope.trim()).filter(Boolean),
             };
         } catch (error: any) {
-            observer.notify(error);
+            observer.notify({ type: "offline", error });
             throw new Error(`Failed to get token info: ${error.message}`);
         }
     }

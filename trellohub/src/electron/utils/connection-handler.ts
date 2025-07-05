@@ -44,7 +44,7 @@ export async function check_connection() {
                 resolve(result);
                 if (result.status === 200) {
                     task.stop();
-                    observer.notify("sync")
+                    observer.notify({ type: "sync", code: 200 });
                 }
             }
             catch (error) {
@@ -55,8 +55,8 @@ export async function check_connection() {
 
     return connectionResult;
 }
-observer.subscribe((event: any) => {
+observer.subscribe((async (event: any) => {
     if (event.type === "offline") {
-        check_connection();
+        await check_connection();
     }
-});
+}));
