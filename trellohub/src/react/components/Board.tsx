@@ -12,13 +12,6 @@ import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 
-/*const defaultStatuses: { title: string; status: Card["status"] }[] = [
-  { title: "A Fazer", status: "todo" },
-  { title: "Em Progresso", status: "in-progress" },
-  { title: "Concluído", status: "done" },
-];*/
-
-
 const Board: React.FC = () => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
