@@ -1,16 +1,17 @@
 import React, { useRef, useState, useCallback } from "react";
 import { Plus } from "lucide-react";
-import type { BoardState, Card, Column, DragState } from "../types";
+import type { BoardState, Card, DragState } from "../types";
 import ColumnComponent from "./ColumnComponent";
 import ColumnDropZone from "./ColumnDropZone";
 import TrashZone from "./TrashZone";
 import Modal from "./Modal";
 import InputModal from "./InputModal";
 import ConfirmationModal from "./ConfirmationModal";
-import { CardModel } from "../models/CardModel";
+//import { CardModel } from "../models/CardModel";
 import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
+import { BoardController } from "../controllers/BoardController";
 
 const Board: React.FC = () => {
   const [board, setBoard] = useState<BoardState>({
@@ -52,6 +53,13 @@ const Board: React.FC = () => {
       },
     ],
   });
+
+   // Exemplo: esses dados devem vir do login/contexto do usuário
+  const github = {
+    token: "SEU_TOKEN_AQUI",
+    owner: "SEU_OWNER_AQUI",
+    repo: "SEU_REPO_AQUI",
+  };
 
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,
@@ -113,40 +121,23 @@ const Board: React.FC = () => {
     setConfirmationModal({
       isOpen: true,
       message: "Tem certeza que deseja excluir este cartão?",
-      onConfirm: () => {
-        const column = board.columns.find((col) => col.id === columnId);
-        if (column) {
-          const updated = ColumnModel.removeCard(column, cardId);
-          setBoard((prev) => BoardModel.updateColumn(prev, columnId, updated));
-        }
+      onConfirm: async () => {
+        const updated = await BoardController.deleteCard(board, columnId, cardId, github);
+        setBoard(updated);
         setConfirmationModal({ ...confirmationModal, isOpen: false });
       },
     });
   };
 
-  const handleSubmitCardModal = () => {
+  const handleSubmitCardModal = async () => {
     const { mode, columnId, card, title, description } = cardModal;
     if (mode === "create" && columnId) {
-      const newCard = CardModel.create(title, description);
-      const col = board.columns.find((c) => c.id === columnId);
-      if (col) {
-        const updated = ColumnModel.addCard(col, newCard);
-        setBoard((prev) => BoardModel.updateColumn(prev, columnId, updated));
-      }
+      const updated = await BoardController.addCard(board, columnId, title, description, github);
+      setBoard(updated);
     } else if (mode === "edit" && card) {
-      const updatedCard = CardModel.update(card, { title, description });
-      const column = board.columns.find((col) =>
-        col.cards.some((c) => c.id === card.id)
-      );
-      if (column) {
-        const updatedCol: Column = {
-          ...column,
-          cards: column.cards.map((c) => (c.id === card.id ? updatedCard : c)),
-        };
-        setBoard((prev) =>
-          BoardModel.updateColumn(prev, column.id, updatedCol)
-        );
-      }
+      const updatedCard = { ...card, title, description };
+      const updated = await BoardController.editCard(board, updatedCard, github);
+      setBoard(updated);
     }
     setCardModal({ ...cardModal, isOpen: false });
   };

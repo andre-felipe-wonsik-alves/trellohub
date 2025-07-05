@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 import type {
   github_repository,
   github_issue,
@@ -6,8 +6,8 @@ import type {
   github_commit,
   github_label,
   repository_data,
-  github_api_error
-} from '../types/github';
+  github_api_error,
+} from "../types/github";
 import { observer } from "../utils/http/http-observer.js";
 
 export interface GithubApiService_interface {
@@ -25,85 +25,17 @@ export class GithubApiService implements GithubApiService_interface {
   private readonly axios_instance: AxiosInstance;
 
   constructor() {
-    this.base_url = 'https://api.github.com';
-    this.user_agent = 'TrelloHub';
+    this.base_url = "https://api.github.com";
+    this.user_agent = "TrelloHub";
 
     this.axios_instance = axios.create({
       baseURL: this.base_url,
       headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': this.user_agent,
-        'Content-Type': 'application/json',
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": this.user_agent,
+        "Content-Type": "application/json",
       },
       timeout: 30000,
-    });
-  }
-  async create_issue(
-    token: string,
-    owner: string,
-    repo: string,
-    title: string,
-    body: string = "",
-    labels: string[] = []
-  ): Promise<github_issue> {
-    const url = `${this.base_url}/repos/${owner}/${repo}/issues`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": this.user_agent,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ title, body, labels }),
-    });
-
-    if (!response.ok) {
-      const error_data = await response.json();
-    }
-
-    return await response.json();
-  }
-
-  async update_issue(
-    token: string,
-    owner: string,
-    repo: string,
-    issue_number: number,
-    fields: Partial<{
-      title: string;
-      body: string;
-      state: "open" | "closed";
-      labels: string[];
-    }>
-  ): Promise<github_issue> {
-    const url = `${this.base_url}/repos/${owner}/${repo}/issues/${issue_number}`;
-    const response = await fetch(url, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": this.user_agent,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(fields),
-    });
-
-    if (!response.ok) {
-      const error_data = await response.json();
-    }
-
-    return await response.json();
-  }
-
-  async close_issue(
-    token: string,
-    owner: string,
-    repo: string,
-    issue_number: number
-  ): Promise<github_issue> {
-    return this.update_issue(token, owner, repo, issue_number, {
-      state: "closed",
     });
   }
 
@@ -114,17 +46,20 @@ export class GithubApiService implements GithubApiService_interface {
       const per_page = 100;
 
       while (true) {
-        const response = await this.axios_instance.get<github_repository[]>('/user/repos', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          params: {
-            page,
-            per_page,
-            sort: 'updated',
-            type: 'all',
-          },
-        });
+        const response = await this.axios_instance.get<github_repository[]>(
+          "/user/repos",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              page,
+              per_page,
+              sort: "updated",
+              type: "all",
+            },
+          }
+        );
 
         const data = response.data;
 
@@ -144,21 +79,20 @@ export class GithubApiService implements GithubApiService_interface {
     }
   }
 
-  async get_repository_data(token: string, owner: string, repo: string): Promise<repository_data> {
+  async get_repository_data(
+    token: string,
+    owner: string,
+    repo: string
+  ): Promise<repository_data> {
     try {
-      const [
-        repository,
-        issues,
-        pull_requests,
-        commits,
-        labels,
-      ] = await Promise.all([
-        this.get_repository(token, owner, repo),
-        this.get_repository_issues(token, owner, repo),
-        this.get_repository_pull_requests(token, owner, repo),
-        this.get_repository_commits(token, owner, repo),
-        this.get_repository_labels(token, owner, repo),
-      ]);
+      const [repository, issues, pull_requests, commits, labels] =
+        await Promise.all([
+          this.get_repository(token, owner, repo),
+          this.get_repository_issues(token, owner, repo),
+          this.get_repository_pull_requests(token, owner, repo),
+          this.get_repository_commits(token, owner, repo),
+          this.get_repository_labels(token, owner, repo),
+        ]);
 
       return {
         repository,
@@ -173,13 +107,20 @@ export class GithubApiService implements GithubApiService_interface {
     }
   }
 
-  private async get_repository(token: string, owner: string, repo: string): Promise<github_repository> {
+  private async get_repository(
+    token: string,
+    owner: string,
+    repo: string
+  ): Promise<github_repository> {
     try {
-      const response = await this.axios_instance.get<github_repository>(`/repos/${owner}/${repo}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await this.axios_instance.get<github_repository>(
+        `/repos/${owner}/${repo}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       return response.data;
     } catch (error: any) {
@@ -188,23 +129,30 @@ export class GithubApiService implements GithubApiService_interface {
     }
   }
 
-  private async get_repository_issues(token: string, owner: string, repo: string): Promise<github_issue[]> {
+  private async get_repository_issues(
+    token: string,
+    owner: string,
+    repo: string
+  ): Promise<github_issue[]> {
     try {
       const issues: github_issue[] = [];
       let page = 1;
       const per_page = 100;
 
       while (true) {
-        const response = await this.axios_instance.get<github_issue[]>(`/repos/${owner}/${repo}/issues`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          params: {
-            page,
-            per_page,
-            state: 'all',
-          },
-        });
+        const response = await this.axios_instance.get<github_issue[]>(
+          `/repos/${owner}/${repo}/issues`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              page,
+              per_page,
+              state: "all",
+            },
+          }
+        );
 
         const data = response.data;
 
@@ -225,23 +173,99 @@ export class GithubApiService implements GithubApiService_interface {
     }
   }
 
-  private async get_repository_pull_requests(token: string, owner: string, repo: string): Promise<github_pull_request[]> {
+  async create_issue(
+    token: string,
+    owner: string,
+    repo: string,
+    title: string,
+    body: string = "",
+    labels?: string[]
+  ): Promise<github_issue> {
+    try {
+      const response = await this.axios_instance.post<github_issue>(
+        `/repos/${owner}/${repo}/issues`,
+        {
+          title,
+          body,
+          labels,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to create issue: ${error.message}`);
+    }
+  }
+
+  async update_issue(
+    token: string,
+    owner: string,
+    repo: string,
+    issue_number: number,
+    fields: Partial<{
+      title: string;
+      body: string;
+      labels: string[];
+      state: "open" | "closed";
+    }>
+  ): Promise<github_issue> {
+    try {
+      const response = await this.axios_instance.patch<github_issue>(
+        `/repos/${owner}/${repo}/issues/${issue_number}`,
+        fields,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to update issue: ${error.message}`);
+    }
+  }
+
+  async close_issue(
+    token: string,
+    owner: string,
+    repo: string,
+    issue_number: number
+  ): Promise<github_issue> {
+    return this.update_issue(token, owner, repo, issue_number, {
+      state: "closed",
+    });
+  }
+
+  private async get_repository_pull_requests(
+    token: string,
+    owner: string,
+    repo: string
+  ): Promise<github_pull_request[]> {
     try {
       const pull_requests: github_pull_request[] = [];
       let page = 1;
       const per_page = 100;
 
       while (true) {
-        const response = await this.axios_instance.get<github_pull_request[]>(`/repos/${owner}/${repo}/pulls`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          params: {
-            page,
-            per_page,
-            state: 'all',
-          },
-        });
+        const response = await this.axios_instance.get<github_pull_request[]>(
+          `/repos/${owner}/${repo}/pulls`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              page,
+              per_page,
+              state: "all",
+            },
+          }
+        );
 
         const data = response.data;
 
@@ -257,20 +281,29 @@ export class GithubApiService implements GithubApiService_interface {
       return pull_requests;
     } catch (error: any) {
       observer.notify(error);
-      throw new Error(`Failed to get repository pull requests: ${error.message}`);
+      throw new Error(
+        `Failed to get repository pull requests: ${error.message}`
+      );
     }
   }
 
-  private async get_repository_commits(token: string, owner: string, repo: string): Promise<github_commit[]> {
+  private async get_repository_commits(
+    token: string,
+    owner: string,
+    repo: string
+  ): Promise<github_commit[]> {
     try {
-      const response = await this.axios_instance.get<github_commit[]>(`/repos/${owner}/${repo}/commits`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        params: {
-          per_page: 50,
-        },
-      });
+      const response = await this.axios_instance.get<github_commit[]>(
+        `/repos/${owner}/${repo}/commits`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            per_page: 50,
+          },
+        }
+      );
 
       return response.data;
     } catch (error: any) {
@@ -279,13 +312,20 @@ export class GithubApiService implements GithubApiService_interface {
     }
   }
 
-  private async get_repository_labels(token: string, owner: string, repo: string): Promise<github_label[]> {
+  private async get_repository_labels(
+    token: string,
+    owner: string,
+    repo: string
+  ): Promise<github_label[]> {
     try {
-      const response = await this.axios_instance.get<github_label[]>(`/repos/${owner}/${repo}/labels`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await this.axios_instance.get<github_label[]>(
+        `/repos/${owner}/${repo}/labels`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       return response.data;
     } catch (error: any) {
@@ -296,9 +336,9 @@ export class GithubApiService implements GithubApiService_interface {
 
   async get_repository_rate_limit(token: string): Promise<any> {
     try {
-      const response = await this.axios_instance.get('/rate_limit', {
+      const response = await this.axios_instance.get("/rate_limit", {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
