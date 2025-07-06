@@ -11,7 +11,12 @@ import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 import { BoardController } from "../controllers/BoardController";
 
-const Board: React.FC<any> = ({ github }) => {
+
+interface BoardProps {
+  github: { token: string; owner: string; repo: string };
+}
+
+const Board: React.FC<BoardProps> = ({github}) => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
@@ -20,14 +25,14 @@ const Board: React.FC<any> = ({ github }) => {
         cards: [
           {
             id: "card1",
-            title: "Sla",
-            description: "Nao sei",
+            title: "Arrumando Erros",
+            description: "Teste",
             status: "todo",
           },
           {
             id: "card2",
-            title: "Bora Bill",
-            description: "Lá ele",
+            title: "Teste",
+            description: "Teste",
             status: "todo",
           },
         ],
@@ -108,18 +113,20 @@ const Board: React.FC<any> = ({ github }) => {
   };
 
   const handleDeleteCard = (columnId: string, cardId: string) => {
-    setConfirmationModal({
-      isOpen: true,
-      message: "Tem certeza que deseja excluir este cartão?",
-      onConfirm: async () => {
-        const updated = await BoardController.deleteCard(board, columnId, cardId, github);
-        setBoard(updated);
-        setConfirmationModal({ ...confirmationModal, isOpen: false });
-      },
-    });
-  };
+  setConfirmationModal({
+    isOpen: true,
+    message: "Tem certeza que deseja excluir este cartão?",
+    onConfirm: async () => {
+      if (!github) return;
+      const updated = await BoardController.deleteCard(board, columnId, cardId, github);
+      setBoard(updated);
+      setConfirmationModal((prev) => ({ ...prev, isOpen: false }));
+    },
+  });
+};
 
   const handleSubmitCardModal = async () => {
+    if (!github) return;
     const { mode, columnId, card, title, description } = cardModal;
     if (mode === "create" && columnId) {
       const updated = await BoardController.addCard(board, columnId, title, description, github);
@@ -293,28 +300,6 @@ const Board: React.FC<any> = ({ github }) => {
     },
     [dragState.draggedItem]
   );
-
-  // Trash drop handler
-  const handleTrashDrop = useCallback(() => {
-    if (!dragState.draggedItem) return;
-
-    if (dragState.draggedItem.type === "card") {
-      setBoard((prevBoard) =>
-        BoardModel.removeCard(prevBoard, dragState.draggedItem!.id)
-      );
-    } else if (dragState.draggedItem.type === "column") {
-      setBoard((prevBoard) =>
-        BoardModel.removeColumn(prevBoard, dragState.draggedItem!.id)
-      );
-    }
-
-    setDragState({
-      draggedItem: null,
-      dragOverColumn: null,
-      dragOverIndex: null,
-      dragOutside: false,
-    });
-  }, [dragState.draggedItem]);
 
   // Efeitos
   React.useEffect(() => {

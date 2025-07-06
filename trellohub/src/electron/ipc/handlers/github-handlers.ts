@@ -97,7 +97,6 @@ export const githubHandlers = {
             console.log('Código de autorização recebido:', code);
         });
 
-        // Talvez caiba aceitar labels como parâmetro
         ipcMain.handle(GITHUB_CHANNELS.CREATE_ISSUE, async (event, token: string, owner: string, repo: string, title: string, body: string) => {
             try {
                 return await apiService.create_issue(token, owner, repo, title, body);
