@@ -42,7 +42,7 @@ const App: React.FC = () => {
             <RepositoriesList user_repositories={repositories} onRepositoryClick={handleRepositoryClick} />
           )}
 
-          {selected_repository && <Board user_issues={issues}/>}
+          {selected_repository && <Board github={{...github_user_info.token, ...github_user_info.user, selected_repository}}/>}
         </div>
       )}
     </div>
