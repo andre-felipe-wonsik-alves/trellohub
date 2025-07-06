@@ -36,7 +36,7 @@ const App: React.FC = () => {
       {isLoggedIn ? (
           !selected_repository ? ( 
             repositories.length === 0 ? (
-              <div>Loading repositories...</div>  // Show loading message until repositories are loaded
+              <div>Loading repositories...</div>
             ) : (
               <RepositoriesList user_repositories={repositories} onRepositoryClick={handleRepositoryClick} />
             )

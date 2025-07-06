@@ -52,13 +52,6 @@ const Board: React.FC<any> = ({ github }) => {
     ],
   });
 
-   // Exemplo: esses dados devem vir do login/contexto do usuário
-  // const github = {
-  //   token: "SEU_TOKEN_AQUI",
-  //   owner: "SEU_OWNER_AQUI",
-  //   repo: "SEU_REPO_AQUI",
-  // };
-
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,
     dragOverColumn: null,
