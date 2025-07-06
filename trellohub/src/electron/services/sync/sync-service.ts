@@ -24,6 +24,7 @@ class SyncService implements ISyncService {
             this.keys = await this.redisService.get_keys();
             let key = (!this.keys)?"1":(Number(this.keys[0])+1).toString();
             this.redisService.set(key, JSON.stringify(requestConfig));
+            console.log(`Requisição salva na chave ${key}`);        
         } catch (error) {
             console.error(error);
         }
@@ -32,8 +33,12 @@ class SyncService implements ISyncService {
 
 export const sync_service = new SyncService();
 
-observer.subscribe((event: any) => {
+observer.subscribe((event: any, requestConfig?: AxiosRequestConfig) => {
     if (event.type === "sync") {
-        sync_service.handle_syncronization()
+        sync_service.handle_syncronization();
+    }
+
+    if (event.type === "offline") {
+        sync_service.push_request(requestConfig?requestConfig:{})
     }
 })
