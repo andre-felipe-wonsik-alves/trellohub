@@ -99,7 +99,7 @@ export const githubHandlers = {
 
         ipcMain.handle(GITHUB_CHANNELS.CREATE_ISSUE, async (event, token: string, owner: string, repo: string, title: string, body: string) => {
             try {
-                console.log("🚀 Criando issue com:", { token, owner, repo, title, body });
+                console.log("Criando issue com:", { token, owner, repo, title, body });
                 return await apiService.create_issue(token, owner, repo, title, body);
             } catch (error) {
                 console.error('Erro ao criar issue:', error);
