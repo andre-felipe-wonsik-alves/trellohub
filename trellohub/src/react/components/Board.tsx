@@ -3,11 +3,9 @@ import { Plus } from "lucide-react";
 import type { BoardState, Card, DragState } from "../types";
 import ColumnComponent from "./ColumnComponent";
 import ColumnDropZone from "./ColumnDropZone";
-import TrashZone from "./TrashZone";
 import Modal from "./Modal";
 import InputModal from "./InputModal";
 import ConfirmationModal from "./ConfirmationModal";
-//import { CardModel } from "../models/CardModel";
 import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
@@ -54,7 +52,7 @@ const Board: React.FC = () => {
     ],
   });
 
-   // Exemplo: esses dados devem vir do login/contexto do usuário
+   // Pegar informações do GitHub
   const github = {
     token: "SEU_TOKEN_AQUI",
     owner: "SEU_OWNER_AQUI",
@@ -77,7 +75,6 @@ const Board: React.FC = () => {
     onConfirm: () => {},
   });
 
-  // Um tanto diferente do original!
   const [inputModal, setInputModal] = useState({
     isOpen: false,
     title: "",
@@ -267,7 +264,6 @@ const Board: React.FC = () => {
         dragOutside: isOutside,
       }));
 
-      // Find column and position for cards
       if (dragState.draggedItem.type === "card") {
         const columns = document.querySelectorAll("[data-column-id]");
         let overColumn: string | null = null;
@@ -283,7 +279,6 @@ const Board: React.FC = () => {
           ) {
             overColumn = col.getAttribute("data-column-id");
 
-            // Lógica de posicionamento do drag
             const cards = col.querySelectorAll("[data-card-index]");
             overIndex = 0;
 
@@ -436,10 +431,6 @@ const Board: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {dragState.draggedItem && (
-        <TrashZone isActive={dragState.dragOutside} onDrop={handleTrashDrop} />
-      )}
 
       {/* Modais */}
       <ConfirmationModal

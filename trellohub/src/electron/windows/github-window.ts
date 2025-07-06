@@ -17,6 +17,7 @@ export async function openGithubAuthWindow(oauthUrl: string, redirectUri: string
         // Intercepta as navegações da janela
         authWindow.webContents.on('will-redirect', (_event, url) => {
             if (url.startsWith(redirectUri)) {
+                _event?.preventDefault()
                 const code = new URL(url).searchParams.get('code');
                 if (code) {
                     resolve(code);
