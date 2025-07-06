@@ -3,23 +3,46 @@ import Board from "./components/Board";
 import Button from "./components/ui/button";
 
 const App: React.FC = () => {
-  const [github, setGithub] = useState<{ token: string; owner: string; repo: string } | null>(null);
+  const [github, setGithub] = useState<{
+    token: string;
+    owner: string;
+    repo: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setLoading(true);
-    const result = await window.electronAPI.make_login();
-    if (result.success) {
-      const token = result.token;
+    try {
+      console.log("Iniciando login...");
+      const result = await window.electronAPI.make_login();
+      console.log("Resultado do make_login:", result);
 
-      const user = await window.electronAPI.getAuthenticatedUser(token);
-      const owner = user.login;
+      if (result.success) {
+        const token = result.token;
+        console.log("Token recebido:", token);
 
-      const repos = await window.electronAPI.getUserRepositories(token);
-      const repo = repos[0]?.name; // Seleciona o primeiro repositório como exemplo
-      setGithub({ token, owner, repo });
-    } else {
-      console.error("Login failed:", result.error);
+        const user = await window.electronAPI.getAuthenticatedUser(token);
+        console.log("Usuário autenticado:", user);
+
+        const owner = user.login;
+
+        const repos = await window.electronAPI.getUserRepositories(token);
+        console.log("Repositórios recebidos:", repos);
+
+        const repo = repos[0]?.name;
+        if (!repo) {
+          throw new Error("Nenhum repositório encontrado para este usuário.");
+        }
+
+        setGithub({ token, owner, repo });
+        console.log("Login e dados do GitHub salvos com sucesso!");
+      } else {
+        console.error("Login failed:", result.error);
+        alert("Falha no login: " + result.error);
+      }
+    } catch (err) {
+      console.error("Erro durante o login:", err);
+      alert("Erro durante o login: " + err);
     }
     setLoading(false);
   };
