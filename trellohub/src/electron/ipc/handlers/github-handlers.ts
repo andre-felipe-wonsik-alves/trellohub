@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
-import { GithubAuthService } from '../../github/github-auth-service.js';
-import { GithubApiService } from '../../github/github-api-service.js';
+import { GithubAuthService } from '../../services/github/github-auth-service.js';
+import { GithubApiService } from '../../services/github/github-api-service.js';
 import { openGithubAuthWindow } from '../../windows/github-window.js';
 import 'dotenv/config';
 

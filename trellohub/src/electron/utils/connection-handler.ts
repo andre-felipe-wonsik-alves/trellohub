@@ -1,6 +1,6 @@
 import axios from "axios";
 import cron from "node-cron"
-import { observer } from "./utils/http/http-observer.js"
+import { observer } from "./http/http-observer.js"
 
 interface ConnectionResult {
     status: number,
@@ -36,14 +36,15 @@ async function verify_connection(): Promise<ConnectionResult> {
     }
 }
 
-export async function check_connection(error: any) { // resolvendo a assinatura que fiz no observer
+export async function check_connection() {
     const connectionResult = new Promise<ConnectionResult>((resolve, reject) => {
         const task = cron.schedule("*/5 * * * * *", async () => {
             try {
                 const result = await verify_connection()
                 resolve(result);
-                if (result.status === 200){
+                if (result.status === 200) {
                     task.stop();
+                    observer.notify({ type: "sync", code: 200 });
                 }
             }
             catch (error) {
@@ -54,4 +55,8 @@ export async function check_connection(error: any) { // resolvendo a assinatura 
 
     return connectionResult;
 }
-observer.subscribe(check_connection);
+observer.subscribe((async (event: any) => {
+    if (event.type === "offline") {
+        await check_connection();
+    }
+}));

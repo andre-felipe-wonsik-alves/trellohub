@@ -1,10 +1,9 @@
-import { generateKeySync } from 'node:crypto';
 import { createClient, RedisClientType } from 'redis';
+import { AxiosRequestConfig } from 'axios';
 
-class RedisService {
+export class RedisService {
     private client: RedisClientType; // Use specific RedisClientType for better typing
     private isConnected: boolean = false; // Track connection status
-    private keys: any = [];
 
     constructor() {
         // Initialize client here, but don't connect immediately
@@ -15,12 +14,17 @@ class RedisService {
         });
     }
 
-    public add_key(key: string){
-        this.keys.push(key);
-    }
-
-    public get_keys(){
-        return this.keys;
+    public async get_keys(): Promise<string[]> {
+        try {
+            let keys: string[] = [];
+            for await(const key of this.client.scanIterator()){
+                keys = key
+            }
+            return keys;
+        } catch (error) {
+            console.error(`Falha ao buscar todas as chaves: ${error}`);
+            throw new Error('Falha ao buscar todas as chaves');
+        }
     }
 
     public async connect(): Promise<void> {
@@ -65,27 +69,30 @@ class RedisService {
             return await this.client.set(key, value, options);
         } catch (error) {
             console.error(`Error setting key '${key}':`, error);
-            return null;
+            throw new Error(`Error setting key '${key}'`);
         }
     }
 
-    public async get(key: string): Promise<string | null> {
+    public async get(key: string): Promise<AxiosRequestConfig> {
         this.ensure_connected();
         try {
             const value = await this.client.get(key);
             if (value === null) {
                 console.log(`Key '${key}' not found in Redis.`);
+                return JSON.parse("");
             }
-            return value;
+            const parsedValue: AxiosRequestConfig = JSON.parse(value);
+            return parsedValue;
         } catch (error) {
             console.error(`Error getting key '${key}':`, error);  
-            return null;
+            throw new Error(`Error getting key '${key}'`);
         }
     }
 
     public async del(...keys: string[]): Promise<number> {
         this.ensure_connected();
         try {
+            console.log(`'${keys}' removido`)
             return await this.client.del(keys);
         } catch (error) {
             console.error(`Error deleting key(s) '${keys.join(', ')}':`, error);
@@ -108,5 +115,3 @@ class RedisService {
         return `GET - ${key} (Mocked)`;
     }
 }
-
-export const redisService = new RedisService();

@@ -6,9 +6,10 @@ import type {
   github_commit,
   github_label,
   repository_data,
-  github_api_error,
-} from "../types/github";
-import { observer } from "../utils/http/http-observer.js";
+  github_api_error
+} from '../../types/github.js';
+import { observer } from "../../utils/http/http-observer.js";
+import "../../utils/http/setup-observer.js";
 
 export interface GithubApiService_interface {
   get_user_repositories(token: string): Promise<github_repository[]>;
@@ -74,7 +75,7 @@ export class GithubApiService implements GithubApiService_interface {
 
       return repositories;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to get user repositories: ${error.message}`);
     }
   }
@@ -102,7 +103,7 @@ export class GithubApiService implements GithubApiService_interface {
         labels,
       };
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to get repository data: ${error.message}`);
     }
   }
@@ -124,7 +125,7 @@ export class GithubApiService implements GithubApiService_interface {
 
       return response.data;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to get repository: ${error.message}`);
     }
   }
@@ -182,7 +183,7 @@ export class GithubApiService implements GithubApiService_interface {
 
       return issues;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to get repository issues: ${error.message}`);
     }
   }
@@ -211,7 +212,7 @@ export class GithubApiService implements GithubApiService_interface {
       );
       return response.data;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to create issue: ${error.message}`);
     }
   }
@@ -240,7 +241,7 @@ export class GithubApiService implements GithubApiService_interface {
       );
       return response.data;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to update issue: ${error.message}`);
     }
   }
@@ -294,7 +295,7 @@ export class GithubApiService implements GithubApiService_interface {
 
       return pull_requests;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(
         `Failed to get repository pull requests: ${error.message}`
       );
@@ -321,7 +322,7 @@ export class GithubApiService implements GithubApiService_interface {
 
       return response.data;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to get repository commits: ${error.message}`);
     }
   }
@@ -343,7 +344,7 @@ export class GithubApiService implements GithubApiService_interface {
 
       return response.data;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to get repository labels: ${error.message}`);
     }
   }
@@ -358,7 +359,7 @@ export class GithubApiService implements GithubApiService_interface {
 
       return response.data;
     } catch (error: any) {
-      observer.notify(error);
+      observer.notify({ type: "offline", error });
       throw new Error(`Failed to get rate limit: ${error.message}`);
     }
   }

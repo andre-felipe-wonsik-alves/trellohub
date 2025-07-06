@@ -1,45 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Board from "./components/Board";
+import Button from "./components/ui/button";
 
 const App: React.FC = () => {
-  const [github, setGithub] = useState<{ token: string; owner: string; repo: string } | null>(null);
-  const [loadingGithub, setLoadingGithub] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-  const fetchGithubData = async () => {
-    try {
-      const loginResult = await window.electronAPI.make_login();
-      console.log("loginResult:", loginResult);
-      if (!loginResult.success) throw new Error(loginResult.error);
-
-      const token = loginResult.token;
-      console.log("Token recebido:", token);
-
-      const user = await window.electronAPI.getAuthenticatedUser(token);
-      console.log("Usuário:", user);
-
-      const owner = user.login;
-      const repos = await window.electronAPI.getUserRepositories(token);
-      const repo = repos[0]?.name;
-      if (!repo) throw new Error("Nenhum repositório encontrado!");
-
-      setGithub({ token, owner, repo });
-    } catch (err) {
-      setGithub(null);
-      console.error("Erro ao autenticar no GitHub:", err);
-    } finally {
-      setLoadingGithub(false);
+  const handleLogin = async () => {
+    const result = await window.electronAPI.make_login();
+    if (result.success) {
+      setIsLoggedIn(true);
+      console.log(result.token);
+    } else {
+      console.error("Login failed:", result.error);
     }
   };
-  fetchGithubData();
-}, []);
-
-  if (loadingGithub) return <div>Carregando informações do GitHub...</div>;
-  if (!github) return <div>Erro ao autenticar no GitHub.</div>;
 
   return (
-    <div className="min-h-screen">
-      <Board github={github} />
+    <div className="min-h-screen flex items-center justify-center">
+      {isLoggedIn ? (
+        <Board />
+      ) : (
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">TrelloHub</h1>
+          <p className="mb-6">Faça login</p>
+          <Button onClick={handleLogin}>Login with GitHub</Button>
+        </div>
+      )}
     </div>
   );
 };
