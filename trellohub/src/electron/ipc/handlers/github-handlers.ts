@@ -41,13 +41,13 @@ export const githubHandlers = {
 
         ipcMain.handle(GITHUB_CHANNELS.GET_AUTHENTICATED_USER, async (event, token: string) => {
             try {
-                return await apiService.get_authenticated_user(token);
+                return await authService.get_authenticated_user(token);
             } catch (error) {
                 console.error('Erro ao obter usuário autenticado:', error);
                 throw error;
             }
         });
-        
+
         ipcMain.handle(GITHUB_CHANNELS.EXCHANGE_CODE_FOR_TOKEN, async (event, code: string) => {
             try {
                 return await authService.exchange_code_for_token(code);

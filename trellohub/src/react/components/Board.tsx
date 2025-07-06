@@ -11,6 +11,7 @@ import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 import { BoardController } from "../controllers/BoardController";
 
+
 interface BoardProps {
   github: { token: string; owner: string; repo: string };
 }
