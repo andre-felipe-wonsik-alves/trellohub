@@ -3,6 +3,7 @@ import { GithubAuthService } from '../../services/github/github-auth-service.js'
 import { GithubApiService } from '../../services/github/github-api-service.js';
 import { openGithubAuthWindow } from '../../windows/github-window.js';
 import 'dotenv/config';
+import { StorageService } from '../../services/storage-service.js';
 
 const authService = new GithubAuthService(
     process.env.GITHUB_CLIENT_ID!,
@@ -10,6 +11,7 @@ const authService = new GithubAuthService(
     process.env.GITHUB_CLIENT_URI!
 );
 const apiService = new GithubApiService();
+const storageService = new StorageService();
 
 const GITHUB_CHANNELS = {
     GET_OAUTH_URL: 'github:get-oauth-url',
@@ -22,7 +24,9 @@ const GITHUB_CHANNELS = {
     MAKE_LOGIN: 'github:open-oauth-window',
     CREATE_ISSUE: 'github:create-issue',
     UPDATE_ISSUE: 'github:update-issue',
-    CLOSE_ISSUE: 'github:close-issue'
+    CLOSE_ISSUE: 'github:close-issue',
+    SAVE_TOKEN: 'github:save-token',
+    GET_TOKEN: 'github:get-token'
 } as const;
 
 export const githubHandlers = {
@@ -126,6 +130,14 @@ export const githubHandlers = {
             } catch (_error: any) {
                 return { success: false, error: _error };
             }
+        });
+
+        ipcMain.handle(GITHUB_CHANNELS.SAVE_TOKEN, (event, token: string) => {
+            storageService.set('github-token', token);
+        });
+
+        ipcMain.handle(GITHUB_CHANNELS.GET_TOKEN, () => {
+            return storageService.get('github-token');
         });
 
         console.log('Handlers do GitHub registrados');
