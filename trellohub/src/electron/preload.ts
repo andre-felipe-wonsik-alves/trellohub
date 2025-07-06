@@ -10,7 +10,13 @@ const electronAPI = {
   getRepositoryData: (token: string, owner: string, repo: string) => ipcRenderer.invoke("github:get-repository-data", token, owner, repo),
   getMock: (key: string) => ipcRenderer.invoke("redis:get-mock", key),
   openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
-  make_login: () => ipcRenderer.invoke("github:open-oauth-window")
+  make_login: () => ipcRenderer.invoke("github:open-oauth-window"),
+  createIssue: (token: string, owner: string, repo: string, title: string, body: string) =>
+    ipcRenderer.invoke("github:create-issue", token, owner, repo, title, body),
+  updateIssue: (token: string, owner: string, repo: string, issue_number: number, fields: Partial<{ title: string; body: string; labels: string[]; state: "open" | "closed" }>) =>
+    ipcRenderer.invoke("github:update-issue", token, owner, repo, issue_number, fields),
+  closeIssue: (token: string, owner: string, repo: string, issue_number: number) =>
+    ipcRenderer.invoke("github:close-issue", token, owner, repo, issue_number)
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);
