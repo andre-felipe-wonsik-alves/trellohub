@@ -13,7 +13,7 @@ import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 import { BoardController } from "../controllers/BoardController";
 
-const Board: React.FC<any> = ({ user_issues }) => {
+const Board: React.FC<any> = ({ github }) => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
@@ -55,11 +55,11 @@ const Board: React.FC<any> = ({ user_issues }) => {
   });
 
    // Exemplo: esses dados devem vir do login/contexto do usuário
-  const github = {
-    token: "SEU_TOKEN_AQUI",
-    owner: "SEU_OWNER_AQUI",
-    repo: "SEU_REPO_AQUI",
-  };
+  // const github = {
+  //   token: "SEU_TOKEN_AQUI",
+  //   owner: "SEU_OWNER_AQUI",
+  //   repo: "SEU_REPO_AQUI",
+  // };
 
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,

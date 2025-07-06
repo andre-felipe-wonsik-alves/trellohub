@@ -3,23 +3,29 @@ import Board from "./components/Board";
 import RepositoriesList from "./components/RepositoriesList";
 
 const App: React.FC = () => {
-  const [repositories, setRepositories] = useState<any[]>([]);
-  const [selectedRepository, setSelectedRepository] = useState<any | null>(null);
-  const [issues, setIssues] = useState<any[]>([{}]);
-  const [authToken, setAuthToken] = useState<string>("");
+  const [github_user_info, set_github_user_info] = useState<any>({});
+  const [repositories, set_repositories] = useState<any[]>([]);
+  const [selected_repository, set_selected_repository] = useState<any | null>(null);
+  const [issues, set_issues] = useState<any[]>([]);
 
   const handleLogin = async () => {
     const token = await window.electronAPI.make_login();
-    // const repos = await window.electronAPI.getUserRepositories(token.token);
-    // setRepositories(repos);
-    // setAuthToken(token);
+  
+    const user = await window.electronAPI.getAuthenticatedUser(token);
+    set_github_user_info({
+      token,
+      user
+    });
+
+    const repos = await window.electronAPI.getUserRepositories(token);
+    set_repositories(repos);
   };
 
   const handleRepositoryClick = async (repo: any) => {
-    setSelectedRepository(repo);
-    const user = await window.electronAPI.getAuthenticatedUser(authToken);
-    const repository_data = await window.electronAPI.getRepositoryData(authToken, user, selectedRepository);
-    setIssues(repository_data["issues"]);
+    set_selected_repository(repo);
+
+    const repository_data = await window.electronAPI.getRepositoryData(github_user_info.token, github_user_info.user, selected_repository);
+    set_issues(repository_data["issues"]);
   };
 
   useEffect(() => {
@@ -28,15 +34,15 @@ const App: React.FC = () => {
   
   return (
     <div className="min-h-screen">
-      {!authToken ? (
-        <Board user_issues={issues}/>
+      {!github_user_info ? (
+        <div></div>
       ) : (
         <div>
-          {!selectedRepository && (
+          {!selected_repository && (
             <RepositoriesList user_repositories={repositories} onRepositoryClick={handleRepositoryClick} />
           )}
 
-          {selectedRepository && <Board user_issues={issues}/>}
+          {selected_repository && <Board user_issues={issues}/>}
         </div>
       )}
     </div>
