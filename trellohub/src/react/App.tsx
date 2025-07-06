@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Board from "./components/Board";
 import RepositoriesList from "./components/RepositoriesList";
 import Button from "./components/ui/button";
@@ -12,6 +12,9 @@ const App: React.FC = () => {
   const handleLogin = async () => {
     const result = await window.electronAPI.make_login();
     if (result.success) {
+      window.electronAPI.saveToken(result.token);
+      const token = await window.electronAPI.getToken();
+      console.log(token);
       setIsLoggedIn(true);
       const token = result.token.access_token;
       const user = await window.electronAPI.getAuthenticatedUser(token);
@@ -26,6 +29,7 @@ const App: React.FC = () => {
       console.error("Login failed:", result.error);
     }
   };
+
 
   const handleRepositoryClick = async (repo: any) => {
     set_selected_repository(repo);

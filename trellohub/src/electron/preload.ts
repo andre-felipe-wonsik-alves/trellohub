@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, shell } from "electron";
+import { contextBridge, IpcRenderer, ipcRenderer, shell } from "electron";
 
 const electronAPI = {
   getOAuthUrl: () => ipcRenderer.invoke("github:get-oauth-url"),
@@ -16,7 +16,9 @@ const electronAPI = {
   updateIssue: (token: string, owner: string, repo: string, issue_number: number, fields: Partial<{ title: string; body: string; labels: string[]; state: "open" | "closed" }>) =>
     ipcRenderer.invoke("github:update-issue", token, owner, repo, issue_number, fields),
   closeIssue: (token: string, owner: string, repo: string, issue_number: number) =>
-    ipcRenderer.invoke("github:close-issue", token, owner, repo, issue_number)
+    ipcRenderer.invoke("github:close-issue", token, owner, repo, issue_number),
+  saveToken: (token: string) => ipcRenderer.invoke('github:save-token', token),
+  getToken: () => ipcRenderer.invoke('github:get-token'),
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);
