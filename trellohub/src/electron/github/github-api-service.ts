@@ -129,6 +129,20 @@ export class GithubApiService implements GithubApiService_interface {
     }
   }
 
+  async get_authenticated_user(token: string): Promise<{ login: string }> {
+    try {
+      const response = await this.axios_instance.get("/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      observer.notify(error);
+      throw new Error(`Failed to get authenticated user: ${error.message}`);
+    }
+  }
+
   private async get_repository_issues(
     token: string,
     owner: string,
