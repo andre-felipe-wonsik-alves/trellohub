@@ -11,12 +11,11 @@ import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 import { BoardController } from "../controllers/BoardController";
 
-
 interface BoardProps {
-  github: { token: string; owner: string; repo: string };
+  github: { token: string; user: any; repo: any };
 }
 
-const Board: React.FC<BoardProps> = ({github}) => {
+const Board: React.FC<BoardProps> = ({ github }) => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
@@ -113,27 +112,50 @@ const Board: React.FC<BoardProps> = ({github}) => {
   };
 
   const handleDeleteCard = (columnId: string, cardId: string) => {
-  setConfirmationModal({
-    isOpen: true,
-    message: "Tem certeza que deseja excluir este cartão?",
-    onConfirm: async () => {
-      if (!github) return;
-      const updated = await BoardController.deleteCard(board, columnId, cardId, github);
-      setBoard(updated);
-      setConfirmationModal((prev) => ({ ...prev, isOpen: false }));
-    },
-  });
-};
+    setConfirmationModal({
+      isOpen: true,
+      message: "Tem certeza que deseja excluir este cartão?",
+      onConfirm: async () => {
+        if (!github) return;
+        const updated = await BoardController.deleteCard(
+          board,
+          columnId,
+          cardId,
+          {
+            token: github.token,
+            owner: github.user.login,
+            repo: github.repo.name,
+          }
+        );
+        setBoard(updated);
+        setConfirmationModal((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
 
   const handleSubmitCardModal = async () => {
     if (!github) return;
     const { mode, columnId, card, title, description } = cardModal;
     if (mode === "create" && columnId) {
-      const updated = await BoardController.addCard(board, columnId, title, description, github);
+      const updated = await BoardController.addCard(
+        board,
+        columnId,
+        title,
+        description,
+        {
+          token: github.token,
+          owner: github.user.login,
+          repo: github.repo.name,
+        }
+      );
       setBoard(updated);
     } else if (mode === "edit" && card) {
       const updatedCard = { ...card, title, description };
-      const updated = await BoardController.editCard(board, updatedCard, github);
+      const updated = await BoardController.editCard(board, updatedCard, {
+        token: github.token,
+        owner: github.user.login,
+        repo: github.repo.name,
+      });
       setBoard(updated);
     }
     setCardModal({ ...cardModal, isOpen: false });
@@ -467,7 +489,7 @@ const Board: React.FC<BoardProps> = ({github}) => {
             />
           </div>
           <div className="flex justify-end space-x-2">
-          <Button
+            <Button
               onClick={handleSubmitCardModal}
               disabled={!cardModal.title.trim()}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors"
