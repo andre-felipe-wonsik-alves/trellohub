@@ -33,12 +33,12 @@ class SyncService implements ISyncService {
 
 export const sync_service = new SyncService();
 
-observer.subscribe((event: any, requestConfig?: AxiosRequestConfig) => {
+observer.subscribe((event: any) => {
     if (event.type === "sync") {
         sync_service.handle_syncronization();
     }
 
     if (event.type === "offline") {
-        sync_service.push_request(requestConfig?requestConfig:{})
+        sync_service.push_request(event.request)
     }
 })

@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from "axios";
 
-type Subscriber = (error: any, request?: AxiosRequestConfig) => void;
+type Subscriber = (error: any) => void;
 
 // https://refactoring.guru/design-patterns/observer
 class Observer {
