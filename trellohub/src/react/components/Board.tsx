@@ -52,12 +52,32 @@ const Board: React.FC = () => {
     ],
   });
 
-   // Pegar informações do GitHub
-  const github = {
-    token: "SEU_TOKEN_AQUI",
-    owner: "SEU_OWNER_AQUI",
-    repo: "SEU_REPO_AQUI",
+  const [github, setGithub] = useState<{ token: string; owner: string; repo: string } | null>(null);
+  const [loadingGithub, setLoadingGithub] = useState(true);
+
+  React.useEffect(() => {
+    const fetchGithubData = async () => {
+    try {
+      console.log("Iniciando login GitHub...");
+      const token = await window.electronAPI.make_login();
+      console.log("Token:", token);
+      const user = await window.electronAPI.getAuthenticatedUser(token);
+      console.log("User:", user);
+      const owner = user.login;
+      const repos = await window.electronAPI.getUserRepositories(token);
+      console.log("Repos:", repos);
+      const repo = repos[0].name;
+      setGithub({ token, owner, repo });
+    } catch (err) {
+      console.error("Erro ao autenticar no GitHub:", err);
+      setGithub(null);
+    } finally {
+      setLoadingGithub(false);
+      console.log("Finalizou carregamento do GitHub");
+    }
   };
+  fetchGithubData();
+}, []);
 
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,
@@ -115,18 +135,20 @@ const Board: React.FC = () => {
   };
 
   const handleDeleteCard = (columnId: string, cardId: string) => {
-    setConfirmationModal({
-      isOpen: true,
-      message: "Tem certeza que deseja excluir este cartão?",
-      onConfirm: async () => {
-        const updated = await BoardController.deleteCard(board, columnId, cardId, github);
-        setBoard(updated);
-        setConfirmationModal({ ...confirmationModal, isOpen: false });
-      },
-    });
-  };
+  setConfirmationModal({
+    isOpen: true,
+    message: "Tem certeza que deseja excluir este cartão?",
+    onConfirm: async () => {
+      if (!github) return; // Garante que github não é null
+      const updated = await BoardController.deleteCard(board, columnId, cardId, github);
+      setBoard(updated);
+      setConfirmationModal((prev) => ({ ...prev, isOpen: false }));
+    },
+  });
+};
 
   const handleSubmitCardModal = async () => {
+    if (!github) return; // Não tenta criar cartão sem dados do GitHub
     const { mode, columnId, card, title, description } = cardModal;
     if (mode === "create" && columnId) {
       const updated = await BoardController.addCard(board, columnId, title, description, github);
@@ -308,6 +330,10 @@ const Board: React.FC = () => {
       return () => document.removeEventListener("mousemove", handleMouseMove);
     }
   }, [dragState.draggedItem, handleMouseMove]);
+
+  // Verificação de autenticação do GitHub
+  /*if (loadingGithub) return <div>Carregando informações do GitHub...</div>;
+  if (!github) return <div>Erro ao autenticar no GitHub.</div>;*/
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
