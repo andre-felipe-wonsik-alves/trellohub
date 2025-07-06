@@ -20,14 +20,14 @@ const Board: React.FC = () => {
         cards: [
           {
             id: "card1",
-            title: "Sla",
-            description: "Nao sei",
+            title: "Arrumando Erros",
+            description: "Teste",
             status: "todo",
           },
           {
             id: "card2",
-            title: "Bora Bill",
-            description: "Lá ele",
+            title: "Teste",
+            description: "Teste",
             status: "todo",
           },
         ],
@@ -300,28 +300,6 @@ const Board: React.FC = () => {
     },
     [dragState.draggedItem]
   );
-
-  // Trash drop handler
-  const handleTrashDrop = useCallback(() => {
-    if (!dragState.draggedItem) return;
-
-    if (dragState.draggedItem.type === "card") {
-      setBoard((prevBoard) =>
-        BoardModel.removeCard(prevBoard, dragState.draggedItem!.id)
-      );
-    } else if (dragState.draggedItem.type === "column") {
-      setBoard((prevBoard) =>
-        BoardModel.removeColumn(prevBoard, dragState.draggedItem!.id)
-      );
-    }
-
-    setDragState({
-      draggedItem: null,
-      dragOverColumn: null,
-      dragOverIndex: null,
-      dragOutside: false,
-    });
-  }, [dragState.draggedItem]);
 
   // Efeitos
   React.useEffect(() => {
