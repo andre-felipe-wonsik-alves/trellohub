@@ -1,58 +1,48 @@
 import React, { useState } from "react";
 import Board from "./components/Board";
+import RepositoriesList from "./components/RepositoriesList";
 import Button from "./components/ui/button";
 
 const App: React.FC = () => {
-  const [github, setGithub] = useState<{
-    token: string;
-    owner: string;
-    repo: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [github_user_info, set_github_user_info] = useState<any>({});
+  const [repositories, set_repositories] = useState<any[]>([]);
+  const [selected_repository, set_selected_repository] = useState<any | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleLogin = async () => {
-    setLoading(true);
-    try {
-      console.log("Iniciando login...");
-      const result = await window.electronAPI.make_login();
-      console.log("Resultado do make_login:", result);
+    const result = await window.electronAPI.make_login();
+    if (result.success) {
+      setIsLoggedIn(true);
+      const token = result.token.access_token;
+      const user = await window.electronAPI.getAuthenticatedUser(token);
+      set_github_user_info({
+        token,
+        user
+      });
 
-      if (result.success) {
-        const token = result.token;
-        console.log("Token recebido:", token);
-
-        const user = await window.electronAPI.getAuthenticatedUser(token);
-        console.log("Usuário autenticado:", user);
-
-        const owner = user.login;
-
-        const repos = await window.electronAPI.getUserRepositories(token);
-        console.log("Repositórios recebidos:", repos);
-
-        const repo = repos[0]?.name;
-        if (!repo) {
-          throw new Error("Nenhum repositório encontrado para este usuário.");
-        }
-
-        setGithub({ token, owner, repo });
-        console.log("Login e dados do GitHub salvos com sucesso!");
-      } else {
-        console.error("Login failed:", result.error);
-        alert("Falha no login: " + result.error);
-      }
-    } catch (err) {
-      console.error("Erro durante o login:", err);
-      alert("Erro durante o login: " + err);
+      const repos = await window.electronAPI.getUserRepositories(token);
+      set_repositories(repos);
+    } else {
+      console.error("Login failed:", result.error);
     }
-    setLoading(false);
   };
 
-  if (loading) return <div>Carregando informações do GitHub...</div>;
+  const handleRepositoryClick = async (repo: any) => {
+    set_selected_repository(repo);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      {github ? (
-        <Board github={github} />
+      {isLoggedIn ? (
+          !selected_repository ? ( 
+            repositories.length === 0 ? (
+              <div>Loading repositories...</div>
+            ) : (
+              <RepositoriesList user_repositories={repositories} onRepositoryClick={handleRepositoryClick} />
+            )
+          ) : (
+            <Board github={{token: github_user_info.token, user: github_user_info.user, repo: selected_repository}}/>
+          )
       ) : (
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">TrelloHub</h1>
@@ -62,6 +52,6 @@ const App: React.FC = () => {
       )}
     </div>
   );
-};
+}
 
-export default App;
+export default App;
