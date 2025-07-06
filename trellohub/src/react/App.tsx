@@ -1,22 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Board from "./components/Board";
+import { Button } from "./components/ui/button";
 
 const App: React.FC = () => {
-  const [connectStatus, setConnectStatus] = useState("Disconnected");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const [result] = useState(0);
   const handleLogin = async () => {
-    const token = await window.electronAPI.make_login();
-    console.log(token);
+    const result = await window.electronAPI.make_login();
+    if (result.success) {
+      setIsLoggedIn(true);
+      console.log(result.token);
+    } else {
+      console.error("Login failed:", result.error);
+    }
   };
 
-  useEffect(() => {
-    handleLogin();
-  });
-
   return (
-    <div className="min-h-screen">
-      <Board />
+    <div className="min-h-screen flex items-center justify-center">
+      {isLoggedIn ? (
+        <Board />
+      ) : (
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Welcome to TrelloHub</h1>
+          <p className="mb-6">Please log in with your GitHub account to continue.</p>
+          <Button onClick={handleLogin}>Login with GitHub</Button>
+        </div>
+      )}
     </div>
   );
 };
