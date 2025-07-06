@@ -15,6 +15,7 @@ const storageService = new StorageService();
 
 const GITHUB_CHANNELS = {
     GET_OAUTH_URL: 'github:get-oauth-url',
+    GET_AUTHENTICATED_USER: 'github:get-authenticated-user',
     EXCHANGE_CODE_FOR_TOKEN: 'github:exchange-code-for-token',
     IS_TOKEN_VALID: 'github:is-token-valid',
     REVOKE_TOKEN: 'github:revoke-token',
@@ -38,6 +39,15 @@ export const githubHandlers = {
                 return await authService.get_oauth_url();
             } catch (error) {
                 console.error('Erro ao obter URL OAuth:', error);
+                throw error;
+            }
+        });
+
+        ipcMain.handle(GITHUB_CHANNELS.GET_AUTHENTICATED_USER, async (event, token: string) => {
+            try {
+                return await authService.get_authenticated_user(token);
+            } catch (error) {
+                console.error('Erro ao obter usuário autenticado:', error);
                 throw error;
             }
         });
@@ -91,7 +101,6 @@ export const githubHandlers = {
             console.log('Código de autorização recebido:', code);
         });
 
-        // Talvez caiba aceitar labels como parâmetro
         ipcMain.handle(GITHUB_CHANNELS.CREATE_ISSUE, async (event, token: string, owner: string, repo: string, title: string, body: string) => {
             try {
                 return await apiService.create_issue(token, owner, repo, title, body);
