@@ -5,19 +5,21 @@ import RepositoriesList from "./components/RepositoriesList";
 const App: React.FC = () => {
   const [repositories, setRepositories] = useState<any[]>([]);
   const [selectedRepository, setSelectedRepository] = useState<any | null>(null);
-  const [auth, setAuth] = useState<boolean>(false);
+  const [issues, setIssues] = useState<any[]>([{}]);
+  const [authToken, setAuthToken] = useState<string>("");
 
   const handleLogin = async () => {
-    console.log(1)
     const token = await window.electronAPI.make_login();
-    console.log(token)
     // const repos = await window.electronAPI.getUserRepositories(token.token);
     // setRepositories(repos);
-    // setAuth(true);
+    // setAuthToken(token);
   };
 
-  const handleRepositoryClick = (repo: any) => {
+  const handleRepositoryClick = async (repo: any) => {
     setSelectedRepository(repo);
+    const user = await window.electronAPI.getAuthenticatedUser(authToken);
+    const repository_data = await window.electronAPI.getRepositoryData(authToken, user, selectedRepository);
+    setIssues(repository_data["issues"]);
   };
 
   useEffect(() => {
@@ -26,15 +28,15 @@ const App: React.FC = () => {
   
   return (
     <div className="min-h-screen">
-      {!auth ? (
-        <div></div>
+      {!authToken ? (
+        <Board user_issues={issues}/>
       ) : (
         <div>
           {!selectedRepository && (
             <RepositoriesList user_repositories={repositories} onRepositoryClick={handleRepositoryClick} />
           )}
 
-          {selectedRepository && <Board />}
+          {selectedRepository && <Board user_issues={issues}/>}
         </div>
       )}
     </div>

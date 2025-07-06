@@ -12,7 +12,7 @@ import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 
-const Board: React.FC = () => {
+const Board: React.FC<any> = ({ user_issues }) => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
