@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Board from "./components/Board";
 import RepositoriesList from "./components/RepositoriesList";
 import Button from "./components/ui/button";
@@ -14,7 +14,6 @@ const App: React.FC = () => {
   const handleLogin = async () => {
     const result = await window.electronAPI.make_login();
     if (result.success) {
-      window.electronAPI.saveToken(result.token);
       setIsLoggedIn(true);
       const token = result.token.access_token;
       const user = await window.electronAPI.getAuthenticatedUser(token);
@@ -34,12 +33,23 @@ const App: React.FC = () => {
     set_selected_repository(repo);
   };
 
+  const handleGoBackToRepos = () => {
+    set_selected_repository(null);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
       {isLoggedIn ? (
         !selected_repository ? (
           repositories.length === 0 ? (
-            <div>Loading repositories...</div>
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold mb-4">
+                  Carregando repositórios...
+                </h1>
+                <p>Por favor, aguarde.</p>
+              </div>
+            </div>
           ) : (
             <RepositoriesList
               user_repositories={repositories}
@@ -53,13 +63,25 @@ const App: React.FC = () => {
               user: github_user_info.user,
               repo: selected_repository,
             }}
+            onGoBack={handleGoBackToRepos}
           />
         )
       ) : (
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">TrelloHub</h1>
-          <p className="mb-6">Faça login</p>
-          <Button onClick={handleLogin}>Login with GitHub</Button>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold mb-4">Bem-vindo ao TrelloHub</h1>
+            <p className="text-lg text-gray-400 mb-8">
+              Faça login com sua conta do GitHub para começar!
+            </p>
+            <div className="flex justify-center">
+              <Button
+                onClick={handleLogin}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
+              >
+                Login with GitHub
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

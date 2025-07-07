@@ -14,9 +14,10 @@ import { mapIssuesToBoard } from "../utils/mapIssuesToBoard";
 
 interface BoardProps {
   github: { token: string; user: any; repo: any };
+  onGoBack: () => void;
 }
 
-const Board: React.FC<BoardProps> = ({ github }) => {
+const Board: React.FC<BoardProps> = ({ github, onGoBack }) => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
@@ -332,16 +333,19 @@ const Board: React.FC<BoardProps> = ({ github }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
-      <div className="w-screen px-4" ref={boardRef}>
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-white">{github.repo.name || "TrelloHub"}</h1>
-          <Button
-            onClick={handleAddColumn}
-            className="fixed top-6 right-6 z-50 shadow-lg"
-          >
-            <Plus size={20} className="mr-2" />
-            Adicionar Coluna
+      <Button
+        onClick={handleAddColumn}
+        className="fixed top-6 right-6 z-50 shadow-lg"
+      >
+        <Plus size={20} className="mr-2" />
+        Adicionar Coluna
+      </Button>
+      <div className="px-4" ref={boardRef}>
+        <div className="relative flex items-center justify-center mb-6">
+          <Button onClick={onGoBack} className="absolute left-0">
+            Voltar
           </Button>
+          <h1 className="text-3xl font-bold text-white">{github.repo.name || "TrelloHub"}</h1>
         </div>
 
         <div className="flex gap-6 pb-4 overflow-x-auto whitespace-nowrap">
@@ -456,7 +460,7 @@ const Board: React.FC<BoardProps> = ({ github }) => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1 text-black">
               Título
             </label>
             <input
@@ -465,13 +469,13 @@ const Board: React.FC<BoardProps> = ({ github }) => {
               onChange={(e) =>
                 setCardModal((prev) => ({ ...prev, title: e.target.value }))
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               placeholder="Digite o título do cartão"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1 text-black">
               Descrição (opcional)
             </label>
             <textarea
@@ -482,7 +486,7 @@ const Board: React.FC<BoardProps> = ({ github }) => {
                   description: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-black"
               rows={3}
               placeholder="Digite a descrição do cartão"
             />

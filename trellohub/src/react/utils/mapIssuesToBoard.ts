@@ -11,8 +11,11 @@ export function mapIssuesToBoard(issues: any[]): BoardState {
     const labels = (issue.labels || []).map((l: any) => l.name);
 
     let status: "todo" | "in-progress" | "done" = "todo";
-    if (labels.includes("done")) status = "done";
-    else if (labels.includes("in-progress")) status = "in-progress";
+    if (issue.state === "closed") {
+      status = "done";
+    } else if (labels.includes("in-progress")) {
+      status = "in-progress";
+    }
 
     const card = {
       id: issue.number.toString(),
