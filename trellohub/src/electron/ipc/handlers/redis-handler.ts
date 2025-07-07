@@ -2,13 +2,13 @@ import { ipcMain } from 'electron';
 // Assuming your updated RedisService is in this path
 import { RedisService } from '../../services/redis/redis-service.js';
 
+
 // Instantiate the RedisService.
 // It's crucial to connect to Redis when your Electron app starts up
 // or before you attempt any Redis operations.
-
-// Define your IPC channels using snake_case\
 const redisService = new RedisService();
 
+// Define your IPC channels using snake_case
 const REDIS_CHANNELS = {
     // Connection and Disconnection
     CONNECT: 'redis:connect',
