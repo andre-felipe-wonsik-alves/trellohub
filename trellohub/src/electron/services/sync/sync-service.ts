@@ -36,6 +36,7 @@ class SyncService implements ISyncService {
             let key = (!this.keys)?"1":(Number(this.keys[0])+1).toString();
             this.redisService.set(key, JSON.stringify(requestConfig));
             console.log(`Requisição salva na chave ${key}`);        
+            console.log(this.redisService.get(key));
         } catch (error) {
             console.error("Failed to push request to Redis:", error);
         }
@@ -50,6 +51,7 @@ observer.subscribe((event: any) => {
     }
     if (event.type === "offline" && event.config) {
         console.log("push_request!!!\n\n\n\n")
+        console.log(event.config);
         sync_service.push_request(event.config)
     }
 })
