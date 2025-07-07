@@ -23,6 +23,7 @@ const GITHUB_CHANNELS = {
     GET_REPOSITORY_DATA: 'github:get-repository-data',
     AUTHORIZATION_CODE_RECEIVED: 'github:authorization-code-received',
     MAKE_LOGIN: 'github:open-oauth-window',
+    GET_REPOSITORY_ISSUES: 'github:get-repository-issues',
     CREATE_ISSUE: 'github:create-issue',
     UPDATE_ISSUE: 'github:update-issue',
     CLOSE_ISSUE: 'github:close-issue',
@@ -99,6 +100,15 @@ export const githubHandlers = {
 
         ipcMain.on(GITHUB_CHANNELS.AUTHORIZATION_CODE_RECEIVED, (event, code: string) => {
             console.log('Código de autorização recebido:', code);
+        });
+
+        ipcMain.handle(GITHUB_CHANNELS.GET_REPOSITORY_ISSUES, async (event, token: string, owner: string, repo: string) => {
+            try {
+                return await apiService.get_repository_issues(token, owner, repo);
+            } catch (error) {
+                console.error('Erro ao obter issues do repositório:', error);
+                throw error;
+            }
         });
 
         ipcMain.handle(GITHUB_CHANNELS.CREATE_ISSUE, async (event, token: string, owner: string, repo: string, title: string, body: string) => {

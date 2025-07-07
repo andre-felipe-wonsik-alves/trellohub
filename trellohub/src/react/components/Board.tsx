@@ -10,6 +10,7 @@ import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
 import Button from "./ui/button";
 import { BoardController } from "../controllers/BoardController";
+import { mapIssuesToBoard } from "../utils/mapIssuesToBoard";
 
 interface BoardProps {
   github: { token: string; user: any; repo: any };
@@ -55,6 +56,24 @@ const Board: React.FC<BoardProps> = ({ github }) => {
       },
     ],
   });
+
+  React.useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        const issues = await window.electronAPI.getRepositoryIssues(
+          github.token,
+          github.user.login,
+          github.repo.name
+        );
+        const boardState = mapIssuesToBoard(issues);
+        setBoard(boardState);
+      } catch (err) {
+        console.error("Erro ao buscar issues do GitHub:", err);
+      }
+    };
+
+    fetchIssues();
+  }, [github]);
 
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,
@@ -335,7 +354,7 @@ const Board: React.FC<BoardProps> = ({ github }) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
       <div className="w-screen px-4" ref={boardRef}>
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-white">TrelloHub</h1>
+          <h1 className="text-3xl font-bold text-white">{github.repo.name || "TrelloHub"}</h1>
           <Button
             onClick={handleAddColumn}
             className="fixed top-6 right-6 z-50 shadow-lg"

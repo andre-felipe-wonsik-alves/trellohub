@@ -144,7 +144,7 @@ export class GithubApiService implements GithubApiService_interface {
     }
   }
 
-  private async get_repository_issues(
+  async get_repository_issues(
     token: string,
     owner: string,
     repo: string
