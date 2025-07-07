@@ -17,7 +17,7 @@ export class RedisService {
     public async get_keys(): Promise<string[]> {
         try {
             let keys: string[] = [];
-            for await(const key of this.client.scanIterator()){
+            for await (const key of this.client.scanIterator()) {
                 keys = key
             }
             return keys;
@@ -73,19 +73,19 @@ export class RedisService {
         }
     }
 
-    public async get(key: string): Promise<AxiosRequestConfig> {
+    public async get(key: string): Promise<AxiosRequestConfig | null> {
         this.ensure_connected();
         try {
             const value = await this.client.get(key);
             if (value === null) {
                 console.log(`Key '${key}' not found in Redis.`);
-                return JSON.parse("");
+                return null;
             }
             const parsedValue: AxiosRequestConfig = JSON.parse(value);
             return parsedValue;
         } catch (error) {
-            console.error(`Error getting key '${key}':`, error);  
-            throw new Error(`Error getting key '${key}'`);
+            console.error(`Error getting or parsing key '${key}':`, error);
+            throw new Error(`Error getting or parsing key '${key}'`);
         }
     }
 
