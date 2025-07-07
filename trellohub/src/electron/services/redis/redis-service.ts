@@ -20,7 +20,7 @@ export class RedisService {
             for await (const key of this.client.scanIterator()) {
                 keys = key
             }
-            return keys;
+            return keys.sort();
         } catch (error) {
             console.error(`Falha ao buscar todas as chaves: ${error}`);
             throw new Error('Falha ao buscar todas as chaves');

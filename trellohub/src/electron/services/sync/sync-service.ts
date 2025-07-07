@@ -13,11 +13,13 @@ class SyncService implements ISyncService {
 
 
     public async handle_syncronization(): Promise<any> {
+        await this.redisService.connect();
         this.keys = await this.redisService.get_keys();
+        console.log(this.keys);
         for (const key of this.keys) {
             try {
-                await this.redisService.connect();
                 const req = await this.redisService.get(key);
+                console.log(req);
                 if (req) {
                     const response = await axios(req);
                     if (response.status >= 200 && response.status < 300) {
@@ -29,17 +31,21 @@ class SyncService implements ISyncService {
                 console.error(`Failed to sync request for key ${key}:`, error);
             }
         }
+        await this.redisService.disconnect();
     }
     public async push_request(requestConfig: AxiosRequestConfig): Promise<void> {
         try {
             await this.redisService.connect();
             console.log("REQ CONFIG: \n\n\n", requestConfig)
             this.keys = await this.redisService.get_keys();
-            let key = (!this.keys)?"1":(Number(this.keys[0])+1).toString();
-            this.redisService.set(key, JSON.stringify(requestConfig));
+            console.log(this.keys);
+            let key = (this.keys.length == 0)?"1":(Number(this.keys[this.keys.length-1])+1).toString();
+            await this.redisService.set(key, JSON.stringify(requestConfig));
             console.log(`Requisição salva na chave ${key}`);        
-            console.log(this.redisService.get(key));
+            console.log(await this.redisService.get(key));
+            await this.redisService.disconnect();
         } catch (error) {
+            await this.redisService.disconnect();
             console.error("Failed to push request to Redis:", error);
         }
     }
