@@ -1,11 +1,12 @@
 import { ipcMain } from 'electron';
 // Assuming your updated RedisService is in this path
-import { redisService } from '../../redis/redis-service.js';
+import { RedisService } from '../../services/redis/redis-service.js';
+
 
 // Instantiate the RedisService.
 // It's crucial to connect to Redis when your Electron app starts up
 // or before you attempt any Redis operations.
-const _redisService = new redisService();
+const redisService = new RedisService();
 
 // Define your IPC channels using snake_case
 const REDIS_CHANNELS = {
@@ -30,7 +31,7 @@ export const redisHandlers = {
         // Connect to Redis when handlers are registered
         // This is a good place to ensure the service is ready
         try {
-            await _redisService.connect();
+            await redisService.connect();
             console.log('Redis service connected during handler registration.');
         } catch (error) {
             console.error('Falha ao conectar ao Redis durante o registro dos handlers:', error);
@@ -41,7 +42,7 @@ export const redisHandlers = {
         // --- Connection & Disconnection Handlers ---
         ipcMain.handle(REDIS_CHANNELS.CONNECT, async () => {
             try {
-                await _redisService.connect();
+                await redisService.connect();
                 return { success: true, message: 'Connected to Redis' };
             } catch (error: any) {
                 console.error('Erro ao conectar ao Redis:', error);
@@ -51,7 +52,7 @@ export const redisHandlers = {
 
         ipcMain.handle(REDIS_CHANNELS.DISCONNECT, async () => {
             try {
-                await _redisService.disconnect();
+                await redisService.disconnect();
                 return { success: true, message: 'Disconnected from Redis' };
             } catch (error: any) {
                 console.error('Erro ao desconectar do Redis:', error);
@@ -65,7 +66,7 @@ export const redisHandlers = {
         // Expects { key: string, value: string, options?: object }
         ipcMain.handle(REDIS_CHANNELS.SET, async (event, { key, value, options }: { key: string, value: string, options?: object }) => {
             try {
-                const result = await _redisService.set(key, value, options);
+                const result = await redisService.set(key, value, options);
                 return { success: true, result: result };
             } catch (error: any) {
                 console.error(`Erro ao setar chave '${key}':`, error);
@@ -77,7 +78,7 @@ export const redisHandlers = {
         // Expects key: string
         ipcMain.handle(REDIS_CHANNELS.GET, async (event, key: string) => {
             try {
-                const value = await _redisService.get(key);
+                const value = await redisService.get(key);
                 return { success: true, value: value };
             } catch (error: any) {
                 console.error(`Erro ao obter chave '${key}':`, error);
@@ -89,7 +90,7 @@ export const redisHandlers = {
         // Expects keys: string[]
         ipcMain.handle(REDIS_CHANNELS.DEL, async (event, keys: string[]) => {
             try {
-                const deletedCount = await _redisService.del(...keys); // Use spread operator for multiple keys
+                const deletedCount = await redisService.del(...keys); // Use spread operator for multiple keys
                 return { success: true, deleted_count: deletedCount };
             } catch (error: any) {
                 console.error(`Erro ao deletar chave(s) '${keys.join(', ')}':`, error);
@@ -101,7 +102,7 @@ export const redisHandlers = {
         // Expects key: string
         ipcMain.handle(REDIS_CHANNELS.EXISTS, async (event, key: string) => {
             try {
-                const exists = await _redisService.exists(key);
+                const exists = await redisService.exists(key);
                 return { success: true, exists: exists };
             } catch (error: any) {
                 console.error(`Erro ao verificar existência da chave '${key}':`, error);
@@ -113,7 +114,7 @@ export const redisHandlers = {
         ipcMain.handle(REDIS_CHANNELS.GET_MOCK, async (event, key: string) => {
             try {
                 // Renamed from get_mock to getMock in the RedisService, adjust accordingly
-                return await _redisService.get_mock(key);
+                return await redisService.get_mock(key);
             } catch (error: any) {
                 console.error('Erro ao obter mock:', error);
                 throw error; // Re-throw errors for the renderer to catch if needed
@@ -128,7 +129,7 @@ export const redisHandlers = {
 
         // Disconnect from Redis when handlers are unregistered
         try {
-            await _redisService.disconnect();
+            await redisService.disconnect();
             console.log('Redis service disconnected during handler unregistration.');
         } catch (error) {
             console.error('Falha ao desconectar do Redis durante a desregistro dos handlers:', error);

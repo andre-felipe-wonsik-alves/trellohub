@@ -1,6 +1,8 @@
-import { Octokit } from '@octokit/rest';
-import type { github_user, github_auth_token } from '../types/github'; //* o type é maneiro para interfaces
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
+import type { github_user, github_auth_token } from '../../types/github.js';
+import { openGithubAuthWindow } from "../../windows/github-window.js";
+import { observer } from "../../utils/http/http-observer.js";
+import "../../utils/http/setup-observer.js";
 
 export interface GithubAuthService_interface {
     get_oauth_url(): string;
@@ -15,26 +17,39 @@ export class GithubAuthService implements GithubAuthService_interface {
     private readonly client_secret: string;
     private readonly redirect_uri: string;
     private readonly scopes: string[];
+    private readonly axios_instance: AxiosInstance;
 
     constructor(
-        client_id: string = 'aaa',
-        client_secret: string = 'aaa',
-        redirect_uri: string = 'aaa',
+        client_id: string,
+        client_secret: string,
+        redirect_uri: string,
         scopes: string[] = ['repo', 'user:email']
     ) {
         this.client_id = client_id;
         this.client_secret = client_secret;
         this.redirect_uri = redirect_uri;
         this.scopes = scopes;
+
+        this.axios_instance = axios.create({
+            baseURL: 'https://api.github.com',
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'TrelloHub',
+                'Content-Type': 'application/json',
+            },
+            timeout: 30000,
+        });
     }
 
     get_oauth_url(): string {
         const base_url = 'https://github.com/login/oauth/authorize';
+
         const params = new URLSearchParams({
             client_id: this.client_id,
             redirect_uri: this.redirect_uri,
             scope: this.scopes.join(' '),
             state: this.generate_state(),
+            allow_signup: 'true',
         });
 
         return `${base_url}?${params.toString()}`;
@@ -42,19 +57,21 @@ export class GithubAuthService implements GithubAuthService_interface {
 
     async exchange_code_for_token(code: string): Promise<github_auth_token> {
         try {
-            const response = await axios.post('https://github.com/login/oauth/access_token', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                data: JSON.stringify({
+            const response = await axios.post(
+                'https://github.com/login/oauth/access_token',
+                {
                     client_id: this.client_id,
                     client_secret: this.client_secret,
                     code: code,
                     redirect_uri: this.redirect_uri,
-                }),
-            });
+                },
+                {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
 
             const data = response.data;
 
@@ -64,21 +81,22 @@ export class GithubAuthService implements GithubAuthService_interface {
                 scope: data.scope || this.scopes.join(' '),
             };
         } catch (error) {
-            throw new Error("Erro no get_oauth_url:\n " + error)
+            observer.notify({ type: "offline", error });
+            throw new Error("Erro no exchange_code_for_token:\n " + error);
         }
     }
 
     async get_authenticated_user(token: string): Promise<github_user> {
         try {
-            const user_octokit = new Octokit({
-                auth: token,
-                userAgent: 'TrelloHub',
+            const response = await this.axios_instance.get<github_user>('/user', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             });
 
-            const { data } = await user_octokit.rest.users.getAuthenticated();
-
-            return data as github_user;
+            return response.data;
         } catch (error: any) {
+            observer.notify({ type: "offline", error });
             throw new Error(`Failed to get authenticated user: ${error.message}`);
         }
     }
@@ -94,21 +112,25 @@ export class GithubAuthService implements GithubAuthService_interface {
 
     async revoke_token(token: string): Promise<void> {
         try {
-            const response = await axios.delete(`https://api.github.com/applications/${this.client_id}/token`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Basic ${(`${this.client_id}:${this.client_secret}`)
-                        }`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json',
-                },
-                data: JSON.stringify({
-                    access_token: token,
-                }),
-            });
+            const auth_string = Buffer.from(`${this.client_id}:${this.client_secret}`).toString('base64');
 
-            console.log("Token revogado!\n" + response);
+            const response = await axios.delete(
+                `https://api.github.com/applications/${this.client_id}/token`,
+                {
+                    headers: {
+                        'Authorization': `Basic ${auth_string}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    data: {
+                        access_token: token,
+                    },
+                }
+            );
+
+            console.log("Token revogado!\n", response.status);
         } catch (error: any) {
+            observer.notify({ type: "offline", error });
             if (error.name === 'TypeError') {
                 throw new Error(`Failed to revoke token: ${error.message}`);
             }
@@ -123,12 +145,13 @@ export class GithubAuthService implements GithubAuthService_interface {
 
     async get_token_info(token: string): Promise<any> {
         try {
-            const user_octokit = new Octokit({
-                auth: token,
-                userAgent: 'TrelloHub',
+            const response = await this.axios_instance.get('/user', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             });
 
-            const { headers } = await user_octokit.rest.users.getAuthenticated();
+            const headers = response.headers;
 
             return {
                 rate_limit: {
@@ -140,6 +163,7 @@ export class GithubAuthService implements GithubAuthService_interface {
                 accepted_scopes: String(headers['x-accepted-oauth-scopes'] || '').split(',').map(scope => scope.trim()).filter(Boolean),
             };
         } catch (error: any) {
+            observer.notify({ type: "offline", error });
             throw new Error(`Failed to get token info: ${error.message}`);
         }
     }

@@ -1,8 +1,9 @@
-// src/types/board.ts
+
 export interface Card {
   id: string;
   title: string;
   description?: string;
+  status: "todo" | "in-progress" | "done";
 }
 
 export interface Column {

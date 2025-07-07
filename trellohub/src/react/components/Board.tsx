@@ -1,45 +1,34 @@
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { Plus } from "lucide-react";
-import type { BoardState, Card, Column, DragState } from "../types";
+import type { BoardState, Card, DragState } from "../types";
 import ColumnComponent from "./ColumnComponent";
 import ColumnDropZone from "./ColumnDropZone";
-import TrashZone from "./TrashZone";
 import Modal from "./Modal";
 import InputModal from "./InputModal";
 import ConfirmationModal from "./ConfirmationModal";
-import { CardModel } from "../models/CardModel";
 import { ColumnModel } from "../models/ColumnModel";
 import { BoardModel } from "../models/BoardModel";
+import Button from "./ui/button";
+import { BoardController } from "../controllers/BoardController";
+import { mapIssuesToBoard } from "../utils/mapIssuesToBoard";
 
-const Board: React.FC = () => {
+interface BoardProps {
+  github: { token: string; user: any; repo: any };
+  onGoBack: () => void;
+}
+
+const Board: React.FC<BoardProps> = ({ github, onGoBack }) => {
   const [board, setBoard] = useState<BoardState>({
     columns: [
       {
         id: "col1",
         title: "A Fazer",
-        cards: [
-          {
-            id: "card1",
-            title: "Sla",
-            description: "Nao sei",
-          },
-          {
-            id: "card2",
-            title: "Bora Bill",
-            description: "Lá ele",
-          },
-        ],
+        cards: [],
       },
       {
         id: "col2",
         title: "Em Progresso",
-        cards: [
-          {
-            id: "card3",
-            title: "Desenvolver projeto",
-            description: "TrelloHub",
-          },
-        ],
+        cards: [],
       },
       {
         id: "col3",
@@ -48,6 +37,24 @@ const Board: React.FC = () => {
       },
     ],
   });
+
+  React.useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        const issues = await window.electronAPI.getRepositoryIssues(
+          github.token,
+          github.user.login,
+          github.repo.name
+        );
+        const boardState = mapIssuesToBoard(issues);
+        setBoard(boardState);
+      } catch (err) {
+        console.error("Erro ao buscar issues do GitHub:", err);
+      }
+    };
+
+    fetchIssues();
+  }, [github]);
 
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,
@@ -65,9 +72,6 @@ const Board: React.FC = () => {
     onConfirm: () => {},
   });
 
-  const [formData, setFormData] = useState({ title: "", description: "" });
-
-  // Um tanto diferente do original!
   const [inputModal, setInputModal] = useState({
     isOpen: false,
     title: "",
@@ -111,40 +115,48 @@ const Board: React.FC = () => {
     setConfirmationModal({
       isOpen: true,
       message: "Tem certeza que deseja excluir este cartão?",
-      onConfirm: () => {
-        const column = board.columns.find((col) => col.id === columnId);
-        if (column) {
-          const updated = ColumnModel.removeCard(column, cardId);
-          setBoard((prev) => BoardModel.updateColumn(prev, columnId, updated));
-        }
-        setConfirmationModal({ ...confirmationModal, isOpen: false });
+      onConfirm: async () => {
+        if (!github) return;
+        const updated = await BoardController.deleteCard(
+          board,
+          columnId,
+          cardId,
+          {
+            token: github.token,
+            owner: github.user.login,
+            repo: github.repo.name,
+          }
+        );
+        setBoard(updated);
+        setConfirmationModal((prev) => ({ ...prev, isOpen: false }));
       },
     });
   };
 
-  const handleSubmitCardModal = () => {
+  const handleSubmitCardModal = async () => {
+    if (!github) return;
     const { mode, columnId, card, title, description } = cardModal;
     if (mode === "create" && columnId) {
-      const newCard = CardModel.create(title, description);
-      const col = board.columns.find((c) => c.id === columnId);
-      if (col) {
-        const updated = ColumnModel.addCard(col, newCard);
-        setBoard((prev) => BoardModel.updateColumn(prev, columnId, updated));
-      }
-    } else if (mode === "edit" && card) {
-      const updatedCard = CardModel.update(card, { title, description });
-      const column = board.columns.find((col) =>
-        col.cards.some((c) => c.id === card.id)
+      const updated = await BoardController.addCard(
+        board,
+        columnId,
+        title,
+        description,
+        {
+          token: github.token,
+          owner: github.user.login,
+          repo: github.repo.name,
+        }
       );
-      if (column) {
-        const updatedCol: Column = {
-          ...column,
-          cards: column.cards.map((c) => (c.id === card.id ? updatedCard : c)),
-        };
-        setBoard((prev) =>
-          BoardModel.updateColumn(prev, column.id, updatedCol)
-        );
-      }
+      setBoard(updated);
+    } else if (mode === "edit" && card) {
+      const updatedCard = { ...card, title, description };
+      const updated = await BoardController.editCard(board, updatedCard, {
+        token: github.token,
+        owner: github.user.login,
+        repo: github.repo.name,
+      });
+      setBoard(updated);
     }
     setCardModal({ ...cardModal, isOpen: false });
   };
@@ -178,28 +190,6 @@ const Board: React.FC = () => {
       },
     });
   };
-
-  const handleColumnDrop = useCallback(
-    (toIndex: number) => {
-      if (!dragState.draggedItem || dragState.draggedItem.type !== "column")
-        return;
-
-      const fromIndex = dragState.draggedItem.sourceIndex;
-      if (fromIndex !== undefined && fromIndex !== toIndex) {
-        setBoard((prevBoard) =>
-          BoardModel.moveColumn(prevBoard, fromIndex, toIndex)
-        );
-      }
-
-      setDragState({
-        draggedItem: null,
-        dragOverColumn: null,
-        dragOverIndex: null,
-        dragOutside: false,
-      });
-    },
-    [dragState.draggedItem]
-  );
 
   const handleColumnDragStart = (columnId: string, index: number) => {
     setDragState({
@@ -296,7 +286,6 @@ const Board: React.FC = () => {
         dragOutside: isOutside,
       }));
 
-      // Find column and position for cards
       if (dragState.draggedItem.type === "card") {
         const columns = document.querySelectorAll("[data-column-id]");
         let overColumn: string | null = null;
@@ -312,7 +301,6 @@ const Board: React.FC = () => {
           ) {
             overColumn = col.getAttribute("data-column-id");
 
-            // Lógica de posicionamento do drag
             const cards = col.querySelectorAll("[data-card-index]");
             overIndex = 0;
 
@@ -335,28 +323,6 @@ const Board: React.FC = () => {
     [dragState.draggedItem]
   );
 
-  // Trash drop handler
-  const handleTrashDrop = useCallback(() => {
-    if (!dragState.draggedItem) return;
-
-    if (dragState.draggedItem.type === "card") {
-      setBoard((prevBoard) =>
-        BoardModel.removeCard(prevBoard, dragState.draggedItem!.id)
-      );
-    } else if (dragState.draggedItem.type === "column") {
-      setBoard((prevBoard) =>
-        BoardModel.removeColumn(prevBoard, dragState.draggedItem!.id)
-      );
-    }
-
-    setDragState({
-      draggedItem: null,
-      dragOverColumn: null,
-      dragOverIndex: null,
-      dragOutside: false,
-    });
-  }, [dragState.draggedItem]);
-
   // Efeitos
   React.useEffect(() => {
     if (dragState.draggedItem) {
@@ -367,16 +333,19 @@ const Board: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
-      <div className="w-screen px-4" ref={boardRef}>
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-white">Meu Kanban Board</h1>
-          <button
-            onClick={handleAddColumn}
-            className="fixed top-6 right-6 bg-black text-white px-4 py-2 rounded-lg flex items-center shadow-lg hover:bg-gray-800 z-50"
-          >
-            <Plus size={20} className="mr-2" />
-            Adicionar Coluna
-          </button>
+      <Button
+        onClick={handleAddColumn}
+        className="fixed top-6 right-6 z-50 shadow-lg"
+      >
+        <Plus size={20} className="mr-2" />
+        Adicionar Coluna
+      </Button>
+      <div className="px-4" ref={boardRef}>
+        <div className="relative flex items-center justify-center mb-6">
+          <Button onClick={onGoBack} className="absolute left-0">
+            Voltar
+          </Button>
+          <h1 className="text-3xl font-bold text-white">{github.repo.name || "TrelloHub"}</h1>
         </div>
 
         <div className="flex gap-6 pb-4 overflow-x-auto whitespace-nowrap">
@@ -466,10 +435,6 @@ const Board: React.FC = () => {
         </div>
       </div>
 
-      {dragState.draggedItem && (
-        <TrashZone isActive={dragState.dragOutside} onDrop={handleTrashDrop} />
-      )}
-
       {/* Modais */}
       <ConfirmationModal
         isOpen={confirmationModal.isOpen}
@@ -495,7 +460,7 @@ const Board: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1 text-black">
               Título
             </label>
             <input
@@ -504,13 +469,13 @@ const Board: React.FC = () => {
               onChange={(e) =>
                 setCardModal((prev) => ({ ...prev, title: e.target.value }))
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               placeholder="Digite o título do cartão"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1 text-black">
               Descrição (opcional)
             </label>
             <textarea
@@ -521,25 +486,25 @@ const Board: React.FC = () => {
                   description: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-black"
               rows={3}
               placeholder="Digite a descrição do cartão"
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <button
-              onClick={() => setCardModal({ ...cardModal, isOpen: false })}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
+            <Button
               onClick={handleSubmitCardModal}
               disabled={!cardModal.title.trim()}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors"
             >
               {cardModal.mode === "edit" ? "Salvar" : "Criar"}
-            </button>
+            </Button>
+            <Button
+              onClick={() => setCardModal({ ...cardModal, isOpen: false })}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancelar
+            </Button>
           </div>
         </div>
       </Modal>
