@@ -10,7 +10,6 @@ export interface GithubAuthService_interface {
     exchange_code_for_token(code: string): Promise<github_auth_token>;
     is_token_valid(token: string): Promise<boolean>;
     revoke_token(token: string): Promise<void>;
-    login_on_github(): Promise<void>;
 }
 
 export class GithubAuthService implements GithubAuthService_interface {
@@ -44,24 +43,16 @@ export class GithubAuthService implements GithubAuthService_interface {
 
     get_oauth_url(): string {
         const base_url = 'https://github.com/login/oauth/authorize';
+
         const params = new URLSearchParams({
             client_id: this.client_id,
             redirect_uri: this.redirect_uri,
             scope: this.scopes.join(' '),
             state: this.generate_state(),
+            allow_signup: 'true',
         });
 
         return `${base_url}?${params.toString()}`;
-    }
-
-    async login_on_github(): Promise<void> {
-        try {
-            const url = this.get_oauth_url();
-            const res = await openGithubAuthWindow(url, this.redirect_uri);
-            console.log("LOGIN RES: ", res);
-        } catch (error) {
-            throw new Error("error:" + error);
-        }
     }
 
     async exchange_code_for_token(code: string): Promise<github_auth_token> {

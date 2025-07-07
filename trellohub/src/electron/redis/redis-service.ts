@@ -1,7 +1,6 @@
 import { createClient, RedisClientType } from 'redis';
-import { AxiosRequestConfig } from 'axios';
 
-export class RedisService {
+export class redisService {
     private client: RedisClientType; // Use specific RedisClientType for better typing
     private isConnected: boolean = false; // Track connection status
 
@@ -12,19 +11,6 @@ export class RedisService {
             console.error('Redis Client Error:', err);
             this.isConnected = false; // Mark as disconnected on error
         });
-    }
-
-    public async get_keys(): Promise<string[]> {
-        try {
-            let keys: string[] = [];
-            for await (const key of this.client.scanIterator()) {
-                keys = key
-            }
-            return keys;
-        } catch (error) {
-            console.error(`Falha ao buscar todas as chaves: ${error}`);
-            throw new Error('Falha ao buscar todas as chaves');
-        }
     }
 
     public async connect(): Promise<void> {
@@ -48,7 +34,7 @@ export class RedisService {
             return;
         }
         try {
-            await this.client.destroy(); // Use quit to gracefully close the connection
+            await this.client.quit(); // Use quit to gracefully close the connection
             this.isConnected = false;
             console.log('Redis client disconnected successfully.');
         } catch (error) {
@@ -69,30 +55,27 @@ export class RedisService {
             return await this.client.set(key, value, options);
         } catch (error) {
             console.error(`Error setting key '${key}':`, error);
-            throw new Error(`Error setting key '${key}'`);
+            return null;
         }
     }
 
-    public async get(key: string): Promise<AxiosRequestConfig | null> {
+    public async get(key: string): Promise<string | null> {
         this.ensure_connected();
         try {
             const value = await this.client.get(key);
             if (value === null) {
                 console.log(`Key '${key}' not found in Redis.`);
-                return null;
             }
-            const parsedValue: AxiosRequestConfig = JSON.parse(value);
-            return parsedValue;
+            return value;
         } catch (error) {
-            console.error(`Error getting or parsing key '${key}':`, error);
-            throw new Error(`Error getting or parsing key '${key}'`);
+            console.error(`Error getting key '${key}':`, error);
+            return null;
         }
     }
 
     public async del(...keys: string[]): Promise<number> {
         this.ensure_connected();
         try {
-            console.log(`'${keys}' removido`)
             return await this.client.del(keys);
         } catch (error) {
             console.error(`Error deleting key(s) '${keys.join(', ')}':`, error);

@@ -11,22 +11,33 @@ class SyncService implements ISyncService {
     private keys: string[] = [];
     private readonly redisService = new RedisService();
 
-    
+
     public async handle_syncronization(): Promise<any> {
         this.keys = await this.redisService.get_keys();
-        for (let key of this.keys) {
-            let req: AxiosRequestConfig = await this.redisService.get(key);
-            let response = await axios(req);
+        for (const key of this.keys) {
+            try {
+                const req = await this.redisService.get(key);
+                if (req) {
+                    const response = await axios(req);
+                    if (response.status >= 200 && response.status < 300) {
+                        await this.redisService.del(key);
+                        console.log(`Request for key ${key} successful and removed from Redis.`);
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to sync request for key ${key}:`, error);
+            }
         }
     }
     public async push_request(requestConfig: AxiosRequestConfig): Promise<void> {
         try {
+            console.log("REQ CONFIG: \n\n\n", requestConfig)
             this.keys = await this.redisService.get_keys();
             let key = (!this.keys)?"1":(Number(this.keys[0])+1).toString();
             this.redisService.set(key, JSON.stringify(requestConfig));
             console.log(`Requisição salva na chave ${key}`);        
         } catch (error) {
-            console.error(error);
+            console.error("Failed to push request to Redis:", error);
         }
     }
 }
@@ -37,8 +48,8 @@ observer.subscribe((event: any) => {
     if (event.type === "sync") {
         sync_service.handle_syncronization();
     }
-
-    if (event.type === "offline") {
-        sync_service.push_request(event.request)
+    if (event.type === "offline" && event.config) {
+        console.log("push_request!!!\n\n\n\n")
+        sync_service.push_request(event.config)
     }
 })

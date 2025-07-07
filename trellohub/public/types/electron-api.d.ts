@@ -25,7 +25,12 @@ interface ElectronAPI {
     getRepositoryData: (token: string, owner: string, repo: string) => Promise<any>;
     openExternal: (url: string) => Promise<{ success: boolean }>;
     make_login: () => Promise<any>;
-
+    getRepositoryIssues: (token: string, owner: string, repo: string) => Promise<any[]>;
+    createIssue: (token: string, owner: string, repo: string, title: string, body: string) => Promise<any>;
+    updateIssue: (token: string, owner: string, repo: string, issue_number: number, fields: Partial<{ title: string; body: string; labels: string[]; state: "open" | "closed" }>) => Promise<any>;
+    closeIssue: (token: string, owner: string, repo: string, issue_number: number) => Promise<any>;
+    saveToken: (token: string) => void;
+    getToken: () => Promise<string | null>;
 }
 
 declare global {
