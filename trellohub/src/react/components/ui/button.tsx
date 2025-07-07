@@ -18,10 +18,12 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const Comp = asChild ? Slot : "button";
 
-  const base = "appearance-none rounded-lg font-medium flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-black text-white";
+  const base =
+    "appearance-none rounded-lg font-medium flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 slate-100 text-white";
 
   const variants = {
-    default: "bg-black text-white hover:bg-neutral-800 focus:ring-white !bg-black !text-white",
+    default:
+      "slate-100 text-white hover:bg-neutral-800 focus:ring-white !slate-100 !text-white",
     ghost: "bg-transparent text-white hover:bg-white/10",
     outline: "border border-white text-white hover:bg-white/10",
   };
@@ -41,4 +43,3 @@ const Button: React.FC<ButtonProps> = ({
 };
 
 export default Button;
-

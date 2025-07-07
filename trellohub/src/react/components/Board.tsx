@@ -332,7 +332,7 @@ const Board: React.FC<BoardProps> = ({ github, onGoBack }) => {
   }, [dragState.draggedItem, handleMouseMove]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-12">
       <Button
         onClick={handleAddColumn}
         className="fixed top-6 right-6 z-50 shadow-lg"
@@ -345,7 +345,9 @@ const Board: React.FC<BoardProps> = ({ github, onGoBack }) => {
           <Button onClick={onGoBack} className="absolute left-0">
             Voltar
           </Button>
-          <h1 className="text-3xl font-bold text-white">{github.repo.name || "TrelloHub"}</h1>
+          <h1 className="text-3xl font-bold text-white">
+            {github.repo.name || "TrelloHub"}
+          </h1>
         </div>
 
         <div className="flex gap-6 pb-4 overflow-x-auto whitespace-nowrap">
