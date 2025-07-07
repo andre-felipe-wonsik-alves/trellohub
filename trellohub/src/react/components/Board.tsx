@@ -22,32 +22,12 @@ const Board: React.FC<BoardProps> = ({ github }) => {
       {
         id: "col1",
         title: "A Fazer",
-        cards: [
-          {
-            id: "card1",
-            title: "Arrumando Erros",
-            description: "Teste",
-            status: "todo",
-          },
-          {
-            id: "card2",
-            title: "Teste",
-            description: "Teste",
-            status: "todo",
-          },
-        ],
+        cards: [],
       },
       {
         id: "col2",
         title: "Em Progresso",
-        cards: [
-          {
-            id: "card3",
-            title: "Desenvolver projeto",
-            description: "TrelloHub",
-            status: "in-progress",
-          },
-        ],
+        cards: [],
       },
       {
         id: "col3",
