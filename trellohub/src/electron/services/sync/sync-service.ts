@@ -16,6 +16,7 @@ class SyncService implements ISyncService {
         this.keys = await this.redisService.get_keys();
         for (const key of this.keys) {
             try {
+                await this.redisService.connect();
                 const req = await this.redisService.get(key);
                 if (req) {
                     const response = await axios(req);
@@ -31,6 +32,7 @@ class SyncService implements ISyncService {
     }
     public async push_request(requestConfig: AxiosRequestConfig): Promise<void> {
         try {
+            await this.redisService.connect();
             console.log("REQ CONFIG: \n\n\n", requestConfig)
             this.keys = await this.redisService.get_keys();
             let key = (!this.keys)?"1":(Number(this.keys[0])+1).toString();
